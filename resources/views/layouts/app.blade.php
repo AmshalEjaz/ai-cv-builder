@@ -17,16 +17,16 @@
                 <a href="{{ route('cvs.index') }}">My CVs</a>
                 <a href="{{ route('templates.index') }}">Templates</a>
                 <span class="user-name">{{ auth()->user()->name }}</span>
-                <form method="POST" action="{{ route('logout') }}">@csrf <button class="link-button">Log out</button></form>
+                <form method="POST" action="{{ route('logout') }}">@csrf <button class="link-button">LogOut</button></form>
             </nav>
         @else
-            <nav class="nav-links"><a href="{{ route('login') }}">Log in</a><a class="button button-small" href="{{ route('register') }}">Get started</a></nav>
+            <nav class="nav-links"><a href="{{ route('login') }}">Login</a><a class="button button-small" href="{{ route('register') }}">Get started</a></nav>
         @endauth
     </header>
     <main class="page-container">
-        @if(session('success')) <div class="alert success">{{ session('success') }}</div> @endif
-        @if(session('info')) <div class="alert info">{{ session('info') }}</div> @endif
-        @if($errors->any()) <div class="alert error"><strong>Please check the form.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div> @endif
+        @if(session('success')) <div class="toast toast-success" data-toast><span class="toast-icon">✓</span><span>{{ session('success') }}</span><button type="button" data-toast-close aria-label="Close">×</button></div> @endif
+        @if(session('info')) <div class="toast toast-info" data-toast><span class="toast-icon">i</span><span>{{ session('info') }}</span><button type="button" data-toast-close aria-label="Close">×</button></div> @endif
+        @if($errors->any()) <div class="toast toast-error" data-toast><span class="toast-icon">!</span><span>{{ $errors->first() }}</span><button type="button" data-toast-close aria-label="Close">×</button></div> @endif
         @yield('content')
     </main>
 </body>

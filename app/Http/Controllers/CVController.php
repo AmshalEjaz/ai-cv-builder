@@ -38,7 +38,7 @@ class CVController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'cv_file' => 'required|file|mimes:pdf,docx|max:10240',
-            'template_id' => 'nullable|exists:templates,id'
+            'template_id' => 'required|exists:templates,id'
         ]);
 
         $file = $request->file('cv_file');

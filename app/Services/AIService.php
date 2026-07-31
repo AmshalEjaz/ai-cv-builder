@@ -21,14 +21,19 @@ class AIService
         $prompt = $this->buildEnhancementPrompt($text);
         
         try {
-            $response = Http::post($this->apiUrl, [
+            $response = Http::timeout(120)->post($this->apiUrl, [
                 'model' => $this->model,
                 'prompt' => $prompt,
                 'stream' => false
             ]);
 
             if ($response->successful()) {
-                $result = json_decode($response->json()['response'], true);
+                $result = json_decode($response->json('response'), true);
+
+                if (! is_array($result)) {
+                    throw new \RuntimeException('Ollama returned invalid CV JSON.');
+                }
+
                 return $this->validateAndFormatResponse($result);
             }
             

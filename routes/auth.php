@@ -23,7 +23,8 @@ Route::middleware('guest')->group(function () {
 
         request()->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('dashboard'))
+            ->with('success', 'Welcome back! You are now signed in.');
     })->name('login.store');
 
     Route::get('/register', fn () => view('auth.register'))->name('register');
@@ -44,7 +45,8 @@ Route::middleware('guest')->group(function () {
         Auth::login($user);
         request()->session()->regenerate();
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard')
+            ->with('success', 'Your account was created successfully.');
     })->name('register.store');
 });
 
@@ -53,5 +55,6 @@ Route::post('/logout', function () {
     request()->session()->invalidate();
     request()->session()->regenerateToken();
 
-    return redirect()->route('login');
+    return redirect()->route('login')
+        ->with('success', 'You have been signed out successfully.');
 })->middleware('auth')->name('logout');
