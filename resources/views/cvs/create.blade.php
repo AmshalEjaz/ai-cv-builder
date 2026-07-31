@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('content')
+<div class="form-page"><p class="eyebrow">NEW DOCUMENT</p><h1>Upload your CV</h1><p class="muted">We support PDF and DOCX files up to 10 MB.</p><form method="POST" action="{{ route('cvs.store') }}" enctype="multipart/form-data" class="panel form-stack">@csrf<label>CV title<input type="text" name="title" value="{{ old('title') }}" placeholder="e.g. Product Designer Resume" required></label><label>Choose file<input type="file" name="cv_file" accept=".pdf,.docx" required></label><label>Template<select name="template_id"><option value="">Choose later</option>@foreach($templates as $template)<option value="{{ $template->id }}">{{ $template->name }}</option>@endforeach</select></label><button class="button" type="submit">Upload and enhance</button></form></div>
+@endsection

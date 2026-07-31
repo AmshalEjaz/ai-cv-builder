@@ -6,6 +6,10 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+
+    protected $policies = [
+        CV::class => CVPolicy::class,
+    ];
     /**
      * Register any application services.
      */
