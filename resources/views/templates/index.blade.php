@@ -6,7 +6,13 @@
      <p class="muted">Your uploaded CV content stays the same. Pick a visual style, then AI helps polish the wording.</p>
 </section>
 <div class="template-grid">@forelse($templates as $template)@php($settings = $template->settings ?? [])<a class="template-card" href="{{ route('templates.preview', $template) }}">
-          <div class="template-preview" style="--template-accent: {{ $settings['accent'] ?? '#167a74' }}"><b>{{ strtoupper(substr($template->name, 0, 1)) }}</b><i></i><i></i><i class="short"></i></div>
+          <div class="template-preview" style="--template-accent: {{ $settings['accent'] ?? '#167a74' }}">
+               @if($template->thumbnail)
+                    <img src="{{ asset($template->thumbnail) }}" alt="{{ $template->name }} preview">
+               @else
+                    <b>{{ strtoupper(substr($template->name, 0, 1)) }}</b><i></i><i></i><i class="short"></i>
+               @endif
+          </div>
           <h3>{{ $template->name }}</h3>
           <p>{{ $template->description }}</p><span class="template-link">Preview template →</span>
      </a>@empty<div class="empty-state">

@@ -119,6 +119,7 @@ h3 { margin-bottom: 6px; }
 .template-card h3, .template-card p { margin-right: 21px; margin-left: 21px; }
 .template-card p { color: var(--muted); font-size: .88rem; line-height: 1.6; }
 .template-preview { position: relative; display: grid; place-items: center; height: 200px; overflow: hidden; color: #fff; background: linear-gradient(135deg, var(--template-accent), #61b29f); font-size: 4.2rem; font-weight: 900; }
+.template-preview img { width: 100%; height: 100%; object-fit: cover; }
 .template-preview b { position: relative; z-index: 1; }.template-preview i { position: absolute; bottom: 35px; left: 24%; width: 52%; height: 5px; background: #ffffffaa; border-radius: 8px; }.template-preview i:nth-of-type(2) { bottom: 55px; width: 38%; }.template-preview i.short { bottom: 75px; width: 25%; }
 .template-link { display: block; margin: 18px 21px 22px; color: var(--teal); font-size: .8rem; font-weight: 800; }
 .template-preview.large { height: 350px; border-radius: 15px; }
