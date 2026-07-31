@@ -2,10 +2,11 @@
 
 use App\Http\Controllers\CVController;
 use App\Http\Controllers\TemplateController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : view('welcome');
+    return Auth::check() ? redirect()->route('dashboard') : view('welcome');
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
@@ -18,8 +19,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/dashboard', function () {
-    $cvCount = auth()->user()->cvs()->count();
-    $recentCvs = auth()->user()->cvs()->with('template')->latest()->take(5)->get();
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    $cvCount = $user->cvs()->count();
+    $recentCvs = $user->cvs()->with('template')->latest()->take(5)->get();
 
     return view('dashboard', compact('cvCount', 'recentCvs'));
 })->middleware(['auth'])->name('dashboard');

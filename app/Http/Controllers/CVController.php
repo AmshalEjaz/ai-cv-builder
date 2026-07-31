@@ -4,30 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\CV;
 use App\Models\Template;
+use App\Models\User;
 use App\Services\FileParserService;
 use App\Services\AIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class CVController extends Controller
 {
-    protected $fileParser;
-    protected $aiService;
-
-    public function __construct(FileParserService $fileParser, AIService $aiService)
-    {
-        $this->fileParser = $fileParser;
-        $this->aiService = $aiService;
+    public function __construct(
+        protected FileParserService $fileParser,
+        protected AIService $aiService,
+    ) {
     }
 
-    public function index()
+    public function index(): View
     {
-        $cvs = Auth::user()->cvs()->with('template')->latest()->get();
+        /** @var User $user */
+        $user = Auth::user();
+        $cvs = $user->cvs()->with('template')->latest()->get();
+
         return view('cvs.index', compact('cvs'));
     }
 
-    public function create()
+    public function create(): View
     {
         $templates = Template::where('is_active', true)->get();
         return view('cvs.create', compact('templates'));
@@ -75,14 +78,14 @@ class CVController extends Controller
             ->with('success', 'CV uploaded and processed successfully!');
     }
 
-    public function show(CV $cv)
+    public function show(CV $cv): View
     {
         $this->authorize('view', $cv);
         $templates = Template::where('is_active', true)->get();
         return view('cvs.show', compact('cv', 'templates'));
     }
 
-    public function edit(CV $cv)
+    public function edit(CV $cv): View
     {
         $this->authorize('update', $cv);
         $templates = Template::where('is_active', true)->get();
@@ -118,7 +121,6 @@ class CVController extends Controller
     public function destroy(CV $cv)
     {
         $this->authorize('delete', $cv);
-        
         // Delete file
         Storage::disk('public')->delete($cv->file_path);
         $cv->delete();
@@ -151,8 +153,6 @@ class CVController extends Controller
     {
         $this->authorize('view', $cv);
         
-        // Generate PDF from template
-        // This will be implemented later
         return redirect()->route('cvs.show', $cv)
             ->with('info', 'PDF download feature coming soon!');
     }

@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\CV;
+use App\Policies\CVPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
 
-    protected $policies = [
-        CV::class => CVPolicy::class,
-    ];
     /**
      * Register any application services.
      */
@@ -23,6 +23,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(CV::class, CVPolicy::class);
     }
 }

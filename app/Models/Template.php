@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Template extends Model
 {
@@ -15,7 +16,7 @@ class Template extends Model
         'settings' => 'array',
     ];
 
-    public function cvs()
+    public function cvs(): HasMany
     {
         return $this->hasMany(CV::class);
     }
