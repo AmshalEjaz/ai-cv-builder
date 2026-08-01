@@ -3,7 +3,7 @@
 <div class="form-page upload-page">
     <p class="eyebrow">AI-POWERED CV BUILDER</p>
     <h1>Bring your experience to life.</h1>
-    <p class="muted">Upload your old CV. Ollama will extract your information, improve the wording, and place it into the template you choose.</p>
+    <p class="muted">Upload your old CV. We will extract the available information locally and place it into the template you choose.</p>
     <form method="POST" action="{{ route('cvs.store') }}" enctype="multipart/form-data" class="panel form-stack">
         @csrf
         <label>CV title
@@ -21,8 +21,12 @@
                     <label class="template-option">
                         <input type="radio" name="template_id" value="{{ $template->id }}" @checked(old('template_id') == $template->id) required>
                         <span class="option-preview" style="--template-accent: {{ $settings['accent'] ?? '#167a74' }}">
-                            <b>{{ strtoupper(substr($template->name, 0, 1)) }}</b>
-                            <i></i><i></i><i class="short"></i>
+                            @if($template->thumbnail)
+                                <img src="{{ asset($template->thumbnail) }}" alt="{{ $template->name }} preview">
+                            @else
+                                <b>{{ strtoupper(substr($template->name, 0, 1)) }}</b>
+                                <i></i><i></i><i class="short"></i>
+                            @endif
                         </span>
                         <span class="option-copy"><strong>{{ $template->name }}</strong><small>{{ $template->description }}</small></span>
                         <span class="option-check">✓</span>
@@ -30,7 +34,7 @@
                 @endforeach
             </div>
         </fieldset>
-        <button class="button" type="submit">Upload, enhance & preview <span>→</span></button>
+        <button class="button" type="submit">Upload & preview <span>→</span></button>
     </form>
 </div>
 @endsection

@@ -9,22 +9,34 @@
 </section>
 <section class="stats">
      <div class="stat-card"><span class="stat-label"><i>▣</i> CVs created</span><strong>{{ $cvCount }}</strong><small>Keep building your story</small></div>
-     <div class="stat-card"><span class="stat-label"><i>✦</i> AI enhancement</span><strong>Ready</strong><small>Smart wording is available</small></div>
+     <div class="stat-card"><span class="stat-label"><i>✦</i> CV processing</span><strong>Ready</strong><small>Local processing is enabled</small></div>
      <div class="stat-card"><span class="stat-label"><i>◈</i> Templates</span><strong>{{ \App\Models\Template::where('is_active', true)->count() }}</strong><small>Styles ready to explore</small></div>
 </section>
-<section class="dashboard-showcase">
-     <article class="showcase-card showcase-ai">
-          <div class="showcase-art"><span>✦</span><i></i><i></i><i></i></div>
-          <div><p class="eyebrow">SMART ENHANCEMENT</p><h3>Let your experience speak clearly.</h3><p class="muted">Turn simple responsibilities into confident, achievement-focused wording.</p></div>
-     </article>
-     <article class="showcase-card showcase-design">
-          <div class="showcase-art"><span>◈</span><i></i><i></i><i></i></div>
-          <div><p class="eyebrow">BEAUTIFUL DESIGNS</p><h3>Find a style that feels like you.</h3><p class="muted">Choose from polished templates built for modern applications.</p></div>
-     </article>
-     <article class="showcase-card showcase-ready">
-          <div class="showcase-art"><span>✓</span><i></i><i></i><i></i></div>
-          <div><p class="eyebrow">READY TO SHARE</p><h3>One focused workspace.</h3><p class="muted">Keep every version of your CV organized and ready for the next opportunity.</p></div>
-     </article>
+<section class="section-heading">
+     <div>
+          <p class="eyebrow">YOUR DESIGN LIBRARY</p>
+          <h2>Choose your CV style</h2>
+     </div><a href="{{ route('templates.index') }}">View all →</a>
+</section>
+<section class="dashboard-templates">
+     @forelse($templates as $template)
+          @php($settings = $template->settings ?? [])
+          <a class="dashboard-template-card" href="{{ route('templates.preview', $template) }}">
+               <div class="dashboard-template-image" style="--template-accent: {{ $settings['accent'] ?? '#167a74' }}">
+                    @if($template->thumbnail)
+                         <img src="{{ asset($template->thumbnail) }}" alt="{{ $template->name }} preview">
+                    @else
+                         <span>{{ strtoupper(substr($template->name, 0, 1)) }}</span>
+                    @endif
+               </div>
+               <div class="dashboard-template-copy">
+                    <strong>{{ $template->name }}</strong>
+                    <span>{{ $template->description }}</span>
+               </div>
+          </a>
+     @empty
+          <div class="empty-state"><h3>No templates available yet.</h3><p>Run the template seeder to add your designs.</p></div>
+     @endforelse
 </section>
 <section class="section-heading">
      <div>

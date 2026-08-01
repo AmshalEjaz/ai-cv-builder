@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CVController extends Controller
 {
@@ -99,12 +100,24 @@ class CVController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'template_id' => 'required|exists:templates,id',
-            'data' => 'nullable|array'
+            'data' => 'nullable|array',
+            'data.name' => 'nullable|string|max:255',
+            'data.title' => 'nullable|string|max:255',
+            'data.email' => 'nullable|email|max:255',
+            'data.phone' => 'nullable|string|max:50',
+            'data.summary' => 'nullable|string|max:5000',
+            'data.skills' => 'nullable|string|max:2000',
         ]);
 
-        if ($request->has('data')) {
+        $data = $request->input('data');
+        if (is_array($data)) {
+            if (isset($data['skills']) && is_string($data['skills'])) {
+                $data['skills'] = array_values(array_filter(array_map('trim', preg_split('/[,|\r\n]+/', $data['skills']) ?: [])));
+            }
+
             $cv->update([
-                'ai_enhanced_data' => array_merge($cv->ai_enhanced_data ?? [], $request->data),
+                'title' => $request->title,
+                'ai_enhanced_data' => array_merge($cv->ai_enhanced_data ?? [], $data),
                 'template_id' => $request->template_id
             ]);
         } else {
@@ -152,8 +165,11 @@ class CVController extends Controller
     public function download(CV $cv)
     {
         $this->authorize('view', $cv);
-        
-        return redirect()->route('cvs.show', $cv)
-            ->with('info', 'PDF download feature coming soon!');
+
+        $cv->load('template');
+
+        return Pdf::loadView('cvs.pdf', compact('cv'))
+            ->setPaper('a4')
+            ->download($cv->title . '.pdf');
     }
 }

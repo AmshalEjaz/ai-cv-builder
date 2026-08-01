@@ -10,7 +10,7 @@ class Template extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'thumbnail', 'description', 'settings', 'is_active'];
+    protected $fillable = ['name', 'slug', 'thumbnail', 'pdf_path', 'description', 'settings', 'is_active'];
 
     protected $casts = [
         'settings' => 'array',

@@ -19,6 +19,7 @@
                 <a href="{{ route('dashboard') }}">Dashboard</a>
                 <a href="{{ route('cvs.index') }}">My CVs</a>
                 <a href="{{ route('templates.index') }}">Templates</a>
+                <a href="{{ route('templates.manage') }}">Manage templates</a>
                 <span class="user-name">{{ auth()->user()->name }}</span>
                 <form method="POST" action="{{ route('logout') }}">@csrf <button class="link-button">Logout</button></form>
             </nav>

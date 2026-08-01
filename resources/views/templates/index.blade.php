@@ -1,9 +1,15 @@
 @extends('layouts.app')
 @section('content')
-<section class="page-title">
-     <p class="eyebrow">DESIGN YOUR STORY</p>
-     <h1>Choose a template</h1>
-     <p class="muted">Your uploaded CV content stays the same. Pick a visual style, then AI helps polish the wording.</p>
+<section class="section-heading page-title">
+     <div>
+          <p class="eyebrow">DESIGN YOUR STORY</p>
+          <h1>Choose a template</h1>
+          <p class="muted">Your uploaded CV content stays the same. Pick a visual style, then AI helps polish the wording.</p>
+     </div>
+     <div class="action-group">
+          <a class="button button-secondary" href="{{ route('templates.manage') }}">Manage templates</a>
+          <a class="button" href="{{ route('templates.create') }}">+ Add template</a>
+     </div>
 </section>
 <div class="template-grid">@forelse($templates as $template)@php($settings = $template->settings ?? [])<a class="template-card" href="{{ route('templates.preview', $template) }}">
           <div class="template-preview" style="--template-accent: {{ $settings['accent'] ?? '#167a74' }}">
