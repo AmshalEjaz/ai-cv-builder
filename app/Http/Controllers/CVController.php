@@ -47,8 +47,11 @@ class CVController extends Controller
 
         $file = $request->file('cv_file');
         
-        // Extract text from file
-        $text = $this->fileParser->extractText($file);
+        try {
+            $text = $this->fileParser->extractText($file);
+        } catch (\RuntimeException $exception) {
+            return back()->withInput()->with('error', $exception->getMessage());
+        }
         
         // Store file
         $path = $this->fileParser->storeFile($file, Auth::id());

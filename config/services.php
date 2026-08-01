@@ -41,4 +41,9 @@ return [
         'model' => env('OLLAMA_MODEL', 'llama3.2'),
     ],
 
+    'ocr' => [
+        'pdftoppm' => env('PDFTOPPM_BINARY', 'pdftoppm'),
+        'tesseract' => env('TESSERACT_BINARY', 'tesseract'),
+    ],
+
 ];

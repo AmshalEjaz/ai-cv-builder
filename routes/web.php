@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('templates', [TemplateController::class, 'store'])->name('templates.store');
     Route::get('templates/{template}/edit', [TemplateController::class, 'edit'])->name('templates.edit');
     Route::put('templates/{template}', [TemplateController::class, 'update'])->name('templates.update');
+    Route::delete('templates/{template}', [TemplateController::class, 'destroy'])->name('templates.destroy');
     Route::get('templates/{template}/preview', [TemplateController::class, 'preview'])->name('templates.preview');
 });
 

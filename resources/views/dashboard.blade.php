@@ -24,7 +24,7 @@
           <a class="dashboard-template-card" href="{{ route('templates.preview', $template) }}">
                <div class="dashboard-template-image" style="--template-accent: {{ $settings['accent'] ?? '#167a74' }}">
                     @if($template->thumbnail)
-                         <img src="{{ asset($template->thumbnail) }}" alt="{{ $template->name }} preview">
+                         <img src="{{ $template->thumbnail_url }}" alt="{{ $template->name }} preview">
                     @else
                          <span>{{ strtoupper(substr($template->name, 0, 1)) }}</span>
                     @endif

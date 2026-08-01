@@ -10,7 +10,11 @@
             <span class="file-icon">PDF</span>
             <span><strong>{{ $template->name }}</strong><small>{{ $template->pdf_path ? 'PDF uploaded' : 'PDF missing' }} · {{ $template->is_active ? 'Active' : 'Inactive' }}</small></span>
             <a class="button button-secondary button-small" href="{{ route('templates.edit', $template) }}">Edit</a>
-            <span>→</span>
+            <form method="POST" action="{{ route('templates.destroy', $template) }}" onsubmit="return confirm('Delete this template?');">
+                @csrf
+                @method('DELETE')
+                <button class="button button-danger button-small" type="submit">Delete</button>
+            </form>
         </div>
     @empty
         <div class="empty-state"><h3>No templates yet.</h3><p>Add your first PDF design.</p></div>

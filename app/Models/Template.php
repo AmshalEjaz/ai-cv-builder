@@ -16,6 +16,15 @@ class Template extends Model
         'settings' => 'array',
     ];
 
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (! $this->thumbnail) {
+            return null;
+        }
+
+        return asset(ltrim($this->thumbnail, '/'));
+    }
+
     public function cvs(): HasMany
     {
         return $this->hasMany(CV::class);

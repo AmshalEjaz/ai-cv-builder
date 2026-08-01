@@ -30,6 +30,7 @@
     <main class="page-container">
         @if(session('success')) <div class="toast toast-success" data-toast><span class="toast-icon">✓</span><span>{{ session('success') }}</span><button type="button" data-toast-close aria-label="Close">×</button></div> @endif
         @if(session('info')) <div class="toast toast-info" data-toast><span class="toast-icon">i</span><span>{{ session('info') }}</span><button type="button" data-toast-close aria-label="Close">×</button></div> @endif
+        @if(session('error')) <div class="toast toast-error" data-toast><span class="toast-icon">!</span><span>{{ session('error') }}</span><button type="button" data-toast-close aria-label="Close">×</button></div> @endif
         @if($errors->any()) <div class="toast toast-error" data-toast><span class="toast-icon">!</span><span>{{ $errors->first() }}</span><button type="button" data-toast-close aria-label="Close">×</button></div> @endif
         @yield('content')
     </main>

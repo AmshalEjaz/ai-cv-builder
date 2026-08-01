@@ -4,7 +4,7 @@
      <div class="template-large">
           <div class="template-preview large">
                @if($template->thumbnail)
-                    <img src="{{ asset($template->thumbnail) }}" alt="{{ $template->name }} preview">
+                    <img src="{{ $template->thumbnail_url }}" alt="{{ $template->name }} preview">
                @else
                     {{ strtoupper(substr($template->name, 0, 1)) }}
                @endif
