@@ -20,6 +20,7 @@
             <small class="field-help">Optional image, maximum 5 MB</small>
         </label>
         <label class="check"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $template->exists ? $template->is_active : true))> Show this template to users</label>
+        <label class="check"><input type="checkbox" name="use_pdf_background" value="1" @checked(old('use_pdf_background', $template->exists ? $template->use_pdf_background : false))> Use PDF as background (use only if the PDF contains design-only artwork, not sample text)</label>
         <button class="button" type="submit">{{ $template->exists ? 'Save template' : 'Add template' }}</button>
     </form>
 </div>

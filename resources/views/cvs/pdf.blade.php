@@ -17,7 +17,17 @@
     </style>
 </head>
 <body>
-    @php($data = $cv->ai_enhanced_data ?? [])
+    @php
+        $data = $cv->rendered_data ?? [];
+    @endphp
+
+    {{-- If a precomputed background was provided, embed it as a full-page background --}}
+    @if(!empty($bgBase64))
+        <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:-1;">
+            <img src="data:image/png;base64,{{ $bgBase64 }}" style="width:100%; height:100%; object-fit:cover;" />
+        </div>
+    @endif
+
     <h1>{{ data_get($data, 'name') ?: $cv->title }}</h1>
     <p class="muted">{{ data_get($data, 'title') }}</p>
     <p class="contact">{{ data_get($data, 'email') }} @if(data_get($data, 'email') && data_get($data, 'phone')) · @endif {{ data_get($data, 'phone') }}</p>

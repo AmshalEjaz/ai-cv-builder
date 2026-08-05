@@ -94,6 +94,7 @@ class TemplateController extends Controller
             'description' => 'nullable|string|max:1000',
             'accent' => 'required|string|max:20',
             'is_active' => 'nullable|boolean',
+            'use_pdf_background' => 'nullable|boolean',
             'pdf' => ($template?->pdf_path ? 'nullable' : 'required') . '|file|mimes:pdf|max:10240',
             'thumbnail_file' => 'nullable|file|mimes:png,jpg,jpeg,webp|max:5120',
         ]);
@@ -104,6 +105,7 @@ class TemplateController extends Controller
             'description' => $request->string('description')->toString(),
             'settings' => ['accent' => $request->string('accent')->toString()],
             'is_active' => $request->boolean('is_active'),
+            'use_pdf_background' => $request->boolean('use_pdf_background'),
         ];
     }
 

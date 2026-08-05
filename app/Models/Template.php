@@ -10,10 +10,11 @@ class Template extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'thumbnail', 'pdf_path', 'description', 'settings', 'is_active'];
+    protected $fillable = ['name', 'slug', 'thumbnail', 'pdf_path', 'description', 'settings', 'is_active', 'use_pdf_background'];
 
     protected $casts = [
         'settings' => 'array',
+        'use_pdf_background' => 'boolean',
     ];
 
     public function getThumbnailUrlAttribute(): ?string

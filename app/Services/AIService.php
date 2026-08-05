@@ -16,15 +16,17 @@ class AIService
         $this->model = config('services.ollama.model', 'llama2');
     }
 
-    public function parseAndEnhanceCV(string $text): array
+    public function parseAndEnhanceCV(string $text, ?string $template = null): array
     {
         if (! config('services.ollama.enabled', false)) {
             return $this->parseLocally($text);
         }
 
-        $prompt = $this->buildEnhancementPrompt($text);
+        $prompt = $this->buildEnhancementPrompt($text, $template);
 
         try {
+            Log::info('AIService: sending prompt', ['template' => $template, 'prompt_preview' => mb_substr($prompt, 0, 240)]);
+
             $response = Http::timeout(120)->post($this->apiUrl, [
                 'model' => $this->model,
                 'prompt' => $prompt,
@@ -33,11 +35,13 @@ class AIService
 
             if ($response->successful()) {
                 $rawResponse = trim((string) $response->json('response'));
+                Log::info('AIService: raw response', ['response_preview' => mb_substr($rawResponse, 0, 240)]);
+
                 $rawResponse = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $rawResponse) ?? $rawResponse;
                 $result = json_decode(trim($rawResponse), true);
 
                 if (! is_array($result)) {
-                    throw new \RuntimeException('Ollama returned invalid CV JSON.');
+                    throw new \RuntimeException('Ollama returned invalid CV JSON. Raw: ' . $rawResponse);
                 }
 
                 return $this->validateAndFormatResponse($result);
@@ -45,15 +49,19 @@ class AIService
 
             return $this->getFallbackParsedData($text);
         } catch (\Exception $e) {
-            Log::error('AI Service Error: ' . $e->getMessage());
+            Log::error('AI Service Error: ' . $e->getMessage(), ['exception' => $e]);
             return $this->getFallbackParsedData($text);
         }
     }
 
-    private function buildEnhancementPrompt(string $text): string
+    private function buildEnhancementPrompt(string $text, ?string $template = null): string
     {
+        $templateNote = $template ? "Target template: {$template}. " : '';
+
         return <<<EOT
-    You are a professional CV parser and enhancer. Parse the following CV text and return ONLY a valid JSON object with the following structure:
+    You are a professional CV parser and enhancer. {$templateNote}Parse the following CV text and return ONLY a valid JSON object with the following structure.
+
+    IMPORTANT: The JSON must exactly match the schema shown and must NOT include any sample text or decorative content.
 
     {
         "name": "Full name",
@@ -81,10 +89,11 @@ class AIService
     }
 
     Rules:
-    1. Enhance all descriptions to be more professional and achievement-oriented
-    2. Standardize skill names (e.g., "php" becomes "PHP")
-    3. Add relevant missing skills based on experience
-    4. Make the summary compelling and results-driven
+    1. Use the original CV content where present; do not invent contact details.
+    2. Enhance and rephrase descriptions to be achievement-oriented and concise.
+    3. Standardize skill names (e.g., "php" -> "PHP").
+    4. If information is ambiguous, prefer leaving the field empty rather than guessing.
+    5. Do NOT include any decorative text from a template or sample CV; return only candidate data.
 
     CV Text:
     $text
