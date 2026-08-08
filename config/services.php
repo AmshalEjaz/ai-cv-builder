@@ -36,11 +36,11 @@ return [
     ],
 
     'ollama' => [
+        'url' => env('OLLAMA_URL', 'http://localhost:11434/api/generate'),
+        'model' => env('OLLAMA_MODEL', 'llama2'),
         'enabled' => env('OLLAMA_ENABLED', false),
-        'url' => env('OLLAMA_API_URL', 'http://127.0.0.1:11434/api/generate'),
-        'model' => env('OLLAMA_MODEL', 'llama3.2'),
     ],
-
+    
     'ocr' => [
         'pdftoppm' => env('PDFTOPPM_BINARY', 'pdftoppm'),
         'tesseract' => env('TESSERACT_BINARY', 'tesseract'),

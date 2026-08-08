@@ -1,4 +1,4 @@
-﻿@php
+﻿<?php
     $data = $cv->rendered_data ?? [];
     $accent = data_get($cv->template?->settings, 'accent', '#167a74');
     $style = data_get($cv->template?->settings, 'style', 'modern');
@@ -11,13 +11,13 @@
     $education = data_get($data, 'education', []);
     $summary = data_get($data, 'summary');
     $experience = data_get($data, 'experience', []);
-@endphp
+?>
 <!doctype html>
 <html>
 
 <head>
     <meta charset="utf-8">
-    <title>{{ $cv->title }}</title>
+    <title><?php echo e($cv->title); ?></title>
     <style>
         @page {
             margin: 0;
@@ -54,7 +54,7 @@
         ========================================================= */
         .creative .top-bar {
             height: 6px;
-            background: {{ $accent }};
+            background: <?php echo e($accent); ?>;
         }
 
         .creative .sidebar {
@@ -144,8 +144,8 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            color: {{ $accent }};
-            border-bottom: 2px solid {{ $accent }};
+            color: <?php echo e($accent); ?>;
+            border-bottom: 2px solid <?php echo e($accent); ?>;
             padding-bottom: 5px;
             margin: 0 0 12px;
         }
@@ -187,7 +187,7 @@
 
         .modern .role {
             font-size: 12px;
-            color: {{ $accent }};
+            color: <?php echo e($accent); ?>;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.06em;
@@ -202,7 +202,7 @@
 
         .modern .header-rule {
             height: 3px;
-            background: {{ $accent }};
+            background: <?php echo e($accent); ?>;
             width: 60px;
             margin-bottom: 20px;
         }
@@ -212,7 +212,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.07em;
-            color: {{ $accent }};
+            color: <?php echo e($accent); ?>;
             margin: 20px 0 10px;
         }
 
@@ -254,7 +254,7 @@
            EXECUTIVE — full-width accent banner header, two columns
         ========================================================= */
         .executive .banner {
-            background: {{ $accent }};
+            background: <?php echo e($accent); ?>;
             color: #ffffff;
             padding: 34px 44px 26px;
         }
@@ -298,7 +298,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.07em;
-            color: {{ $accent }};
+            color: <?php echo e($accent); ?>;
             border-bottom: 1px solid #d8d8d8;
             padding-bottom: 4px;
             margin: 0 0 10px;
@@ -381,7 +381,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.14em;
-            color: {{ $accent }};
+            color: <?php echo e($accent); ?>;
             margin: 22px 0 10px;
         }
 
@@ -421,215 +421,216 @@
     </style>
 </head>
 
-<body class="{{ $style }}">
+<body class="<?php echo e($style); ?>">
 
-    {{-- ================= CREATIVE ================= --}}
-    @if($style === 'creative')
+    
+    <?php if($style === 'creative'): ?>
         <div class="creative">
             <div class="top-bar"></div>
             <div class="clearfix">
                 <div class="sidebar">
                     <div class="sidebar-inner">
-                        <h1>{{ $name }}</h1>
-                        @if($title)<p class="role">{{ $title }}</p>@endif
+                        <h1><?php echo e($name); ?></h1>
+                        <?php if($title): ?><p class="role"><?php echo e($title); ?></p><?php endif; ?>
 
-                        @if($email || $phone)
+                        <?php if($email || $phone): ?>
                             <div class="section-title">Contact</div>
-                            @if($email)<div class="contact-row">{{ $email }}</div>@endif
-                            @if($phone)<div class="contact-row">{{ $phone }}</div>@endif
-                        @endif
+                            <?php if($email): ?><div class="contact-row"><?php echo e($email); ?></div><?php endif; ?>
+                            <?php if($phone): ?><div class="contact-row"><?php echo e($phone); ?></div><?php endif; ?>
+                        <?php endif; ?>
 
-                        @if(count($skills))
+                        <?php if(count($skills)): ?>
                             <div class="section-title">Skills</div>
                             <div>
-                                @foreach($skills as $skill)
-                                    <span class="skill-pill">{{ $skill }}</span>
-                                @endforeach
+                                <?php $__currentLoopData = $skills; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $skill): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <span class="skill-pill"><?php echo e($skill); ?></span>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
-                        @endif
+                        <?php endif; ?>
 
-                        @if(count($education))
+                        <?php if(count($education)): ?>
                             <div class="section-title">Education</div>
-                            @foreach($education as $edu)
+                            <?php $__currentLoopData = $education; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $edu): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="edu-item">
-                                    <div class="degree">{{ data_get($edu, 'degree') }}</div>
-                                    <div class="meta">{{ data_get($edu, 'institution') }}</div>
-                                    <div class="meta">{{ data_get($edu, 'year') }}</div>
+                                    <div class="degree"><?php echo e(data_get($edu, 'degree')); ?></div>
+                                    <div class="meta"><?php echo e(data_get($edu, 'institution')); ?></div>
+                                    <div class="meta"><?php echo e(data_get($edu, 'year')); ?></div>
                                 </div>
-                            @endforeach
-                        @endif
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <div class="main">
                     <div class="main-inner">
-                        @if($summary)
+                        <?php if($summary): ?>
                             <div class="section-title">Profile</div>
-                            <p>{{ $summary }}</p>
-                        @endif
+                            <p><?php echo e($summary); ?></p>
+                        <?php endif; ?>
 
-                        @if(count($experience))
-                            <div class="section-title {{ $summary ? 'spaced' : '' }}">Experience</div>
-                            @foreach($experience as $exp)
+                        <?php if(count($experience)): ?>
+                            <div class="section-title <?php echo e($summary ? 'spaced' : ''); ?>">Experience</div>
+                            <?php $__currentLoopData = $experience; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $exp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="exp-item">
-                                    <div class="position">{{ data_get($exp, 'position') }} · {{ data_get($exp, 'company') }}</div>
-                                    <div class="meta">{{ data_get($exp, 'start_date') }} - {{ data_get($exp, 'end_date') }}</div>
-                                    @if(data_get($exp, 'description'))<p>{{ data_get($exp, 'description') }}</p>@endif
+                                    <div class="position"><?php echo e(data_get($exp, 'position')); ?> · <?php echo e(data_get($exp, 'company')); ?></div>
+                                    <div class="meta"><?php echo e(data_get($exp, 'start_date')); ?> - <?php echo e(data_get($exp, 'end_date')); ?></div>
+                                    <?php if(data_get($exp, 'description')): ?><p><?php echo e(data_get($exp, 'description')); ?></p><?php endif; ?>
                                 </div>
-                            @endforeach
-                        @endif
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
-    {{-- ================= EXECUTIVE ================= --}}
-    @elseif($style === 'executive')
+    
+    <?php elseif($style === 'executive'): ?>
         <div class="executive">
             <div class="banner">
-                <h1>{{ $name }}</h1>
-                @if($title)<p class="role">{{ $title }}</p>@endif
-                @if($email || $phone)
+                <h1><?php echo e($name); ?></h1>
+                <?php if($title): ?><p class="role"><?php echo e($title); ?></p><?php endif; ?>
+                <?php if($email || $phone): ?>
                     <p class="contact-row">
-                        {{ $email }}{{ $email && $phone ? '  ·  ' : '' }}{{ $phone }}
+                        <?php echo e($email); ?><?php echo e($email && $phone ? '  ·  ' : ''); ?><?php echo e($phone); ?>
+
                     </p>
-                @endif
+                <?php endif; ?>
             </div>
 
             <div class="body-wrap clearfix">
                 <div class="left-col">
-                    @if(count($skills))
+                    <?php if(count($skills)): ?>
                         <div class="section-title">Skills</div>
                         <div>
-                            @foreach($skills as $skill)
-                                <span class="skill-pill">{{ $skill }}</span>
-                            @endforeach
+                            <?php $__currentLoopData = $skills; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $skill): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <span class="skill-pill"><?php echo e($skill); ?></span>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(count($education))
+                    <?php if(count($education)): ?>
                         <div class="section-title spaced">Education</div>
-                        @foreach($education as $edu)
+                        <?php $__currentLoopData = $education; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $edu): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="edu-item">
-                                <div class="degree">{{ data_get($edu, 'degree') }}</div>
-                                <div class="meta">{{ data_get($edu, 'institution') }}</div>
-                                <div class="meta">{{ data_get($edu, 'year') }}</div>
+                                <div class="degree"><?php echo e(data_get($edu, 'degree')); ?></div>
+                                <div class="meta"><?php echo e(data_get($edu, 'institution')); ?></div>
+                                <div class="meta"><?php echo e(data_get($edu, 'year')); ?></div>
                             </div>
-                        @endforeach
-                    @endif
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?>
                 </div>
 
                 <div class="right-col">
-                    @if($summary)
+                    <?php if($summary): ?>
                         <div class="section-title">Profile</div>
-                        <p>{{ $summary }}</p>
-                    @endif
+                        <p><?php echo e($summary); ?></p>
+                    <?php endif; ?>
 
-                    @if(count($experience))
-                        <div class="section-title {{ $summary ? 'spaced' : '' }}">Experience</div>
-                        @foreach($experience as $exp)
+                    <?php if(count($experience)): ?>
+                        <div class="section-title <?php echo e($summary ? 'spaced' : ''); ?>">Experience</div>
+                        <?php $__currentLoopData = $experience; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $exp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="exp-item">
-                                <div class="position">{{ data_get($exp, 'position') }} · {{ data_get($exp, 'company') }}</div>
-                                <div class="meta">{{ data_get($exp, 'start_date') }} - {{ data_get($exp, 'end_date') }}</div>
-                                @if(data_get($exp, 'description'))<p>{{ data_get($exp, 'description') }}</p>@endif
+                                <div class="position"><?php echo e(data_get($exp, 'position')); ?> · <?php echo e(data_get($exp, 'company')); ?></div>
+                                <div class="meta"><?php echo e(data_get($exp, 'start_date')); ?> - <?php echo e(data_get($exp, 'end_date')); ?></div>
+                                <?php if(data_get($exp, 'description')): ?><p><?php echo e(data_get($exp, 'description')); ?></p><?php endif; ?>
                             </div>
-                        @endforeach
-                    @endif
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
-    {{-- ================= MINIMAL ================= --}}
-    @elseif($style === 'minimal')
+    
+    <?php elseif($style === 'minimal'): ?>
         <div class="minimal">
             <div class="page">
-                <h1>{{ $name }}</h1>
-                @if($title)<p class="role">{{ $title }}</p>@endif
-                @if($email || $phone)
-                    <p class="contact-row">{{ $email }}{{ $email && $phone ? '  ·  ' : '' }}{{ $phone }}</p>
-                @endif
+                <h1><?php echo e($name); ?></h1>
+                <?php if($title): ?><p class="role"><?php echo e($title); ?></p><?php endif; ?>
+                <?php if($email || $phone): ?>
+                    <p class="contact-row"><?php echo e($email); ?><?php echo e($email && $phone ? '  ·  ' : ''); ?><?php echo e($phone); ?></p>
+                <?php endif; ?>
 
-                @if($summary)
+                <?php if($summary): ?>
                     <div class="section-title first">Profile</div>
-                    <p>{{ $summary }}</p>
-                @endif
+                    <p><?php echo e($summary); ?></p>
+                <?php endif; ?>
 
-                @if(count($experience))
+                <?php if(count($experience)): ?>
                     <div class="section-title">Experience</div>
-                    @foreach($experience as $exp)
+                    <?php $__currentLoopData = $experience; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $exp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="exp-item">
-                            <div class="position">{{ data_get($exp, 'position') }} · {{ data_get($exp, 'company') }}</div>
-                            <div class="meta">{{ data_get($exp, 'start_date') }} - {{ data_get($exp, 'end_date') }}</div>
-                            @if(data_get($exp, 'description'))<p>{{ data_get($exp, 'description') }}</p>@endif
+                            <div class="position"><?php echo e(data_get($exp, 'position')); ?> · <?php echo e(data_get($exp, 'company')); ?></div>
+                            <div class="meta"><?php echo e(data_get($exp, 'start_date')); ?> - <?php echo e(data_get($exp, 'end_date')); ?></div>
+                            <?php if(data_get($exp, 'description')): ?><p><?php echo e(data_get($exp, 'description')); ?></p><?php endif; ?>
                         </div>
-                    @endforeach
-                @endif
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endif; ?>
 
-                @if(count($skills))
+                <?php if(count($skills)): ?>
                     <div class="section-title">Skills</div>
-                    <p class="skill-line">{{ implode('  ·  ', $skills) }}</p>
-                @endif
+                    <p class="skill-line"><?php echo e(implode('  ·  ', $skills)); ?></p>
+                <?php endif; ?>
 
-                @if(count($education))
+                <?php if(count($education)): ?>
                     <div class="section-title">Education</div>
-                    @foreach($education as $edu)
+                    <?php $__currentLoopData = $education; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $edu): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="edu-item">
-                            <div class="degree">{{ data_get($edu, 'degree') }}</div>
-                            <div class="meta">{{ data_get($edu, 'institution') }} — {{ data_get($edu, 'year') }}</div>
+                            <div class="degree"><?php echo e(data_get($edu, 'degree')); ?></div>
+                            <div class="meta"><?php echo e(data_get($edu, 'institution')); ?> — <?php echo e(data_get($edu, 'year')); ?></div>
                         </div>
-                    @endforeach
-                @endif
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endif; ?>
             </div>
         </div>
 
-    {{-- ================= MODERN (default) ================= --}}
-    @else
+    
+    <?php else: ?>
         <div class="modern">
             <div class="page">
-                <h1>{{ $name }}</h1>
-                @if($title)<p class="role">{{ $title }}</p>@endif
-                @if($email || $phone)
-                    <p class="contact-row">{{ $email }}{{ $email && $phone ? '  ·  ' : '' }}{{ $phone }}</p>
-                @endif
+                <h1><?php echo e($name); ?></h1>
+                <?php if($title): ?><p class="role"><?php echo e($title); ?></p><?php endif; ?>
+                <?php if($email || $phone): ?>
+                    <p class="contact-row"><?php echo e($email); ?><?php echo e($email && $phone ? '  ·  ' : ''); ?><?php echo e($phone); ?></p>
+                <?php endif; ?>
                 <div class="header-rule"></div>
 
-                @if($summary)
+                <?php if($summary): ?>
                     <div class="section-title first">Professional Summary</div>
-                    <p>{{ $summary }}</p>
-                @endif
+                    <p><?php echo e($summary); ?></p>
+                <?php endif; ?>
 
-                @if(count($skills))
+                <?php if(count($skills)): ?>
                     <div class="section-title">Skills</div>
                     <div>
-                        @foreach($skills as $skill)
-                            <span class="skill-pill">{{ $skill }}</span>
-                        @endforeach
+                        <?php $__currentLoopData = $skills; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $skill): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <span class="skill-pill"><?php echo e($skill); ?></span>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
-                @endif
+                <?php endif; ?>
 
-                @if(count($experience))
+                <?php if(count($experience)): ?>
                     <div class="section-title">Experience</div>
-                    @foreach($experience as $exp)
+                    <?php $__currentLoopData = $experience; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $exp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="exp-item">
-                            <div class="position">{{ data_get($exp, 'position') }} · {{ data_get($exp, 'company') }}</div>
-                            <div class="meta">{{ data_get($exp, 'start_date') }} - {{ data_get($exp, 'end_date') }}</div>
-                            @if(data_get($exp, 'description'))<p>{{ data_get($exp, 'description') }}</p>@endif
+                            <div class="position"><?php echo e(data_get($exp, 'position')); ?> · <?php echo e(data_get($exp, 'company')); ?></div>
+                            <div class="meta"><?php echo e(data_get($exp, 'start_date')); ?> - <?php echo e(data_get($exp, 'end_date')); ?></div>
+                            <?php if(data_get($exp, 'description')): ?><p><?php echo e(data_get($exp, 'description')); ?></p><?php endif; ?>
                         </div>
-                    @endforeach
-                @endif
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endif; ?>
 
-                @if(count($education))
+                <?php if(count($education)): ?>
                     <div class="section-title">Education</div>
-                    @foreach($education as $edu)
+                    <?php $__currentLoopData = $education; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $edu): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="edu-item">
-                            <div class="degree">{{ data_get($edu, 'degree') }}</div>
-                            <div class="meta">{{ data_get($edu, 'institution') }} — {{ data_get($edu, 'year') }}</div>
+                            <div class="degree"><?php echo e(data_get($edu, 'degree')); ?></div>
+                            <div class="meta"><?php echo e(data_get($edu, 'institution')); ?> — <?php echo e(data_get($edu, 'year')); ?></div>
                         </div>
-                    @endforeach
-                @endif
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endif; ?>
             </div>
         </div>
-    @endif
+    <?php endif; ?>
 </body>
 
-</html>
+</html><?php /**PATH C:\laragon\www\ai-cv-builder\resources\views/cvs/pdf.blade.php ENDPATH**/ ?>

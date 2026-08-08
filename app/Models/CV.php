@@ -50,14 +50,21 @@ class CV extends Model
         $raw = isset($parsed['raw_text']) ? $parsed['raw_text'] : '';
 
         $result = [
-            'name' => $this->resolveFieldValue($ai, 'name', $this->extractName($raw) ?? $this->title),
+            'name' => $this->resolveFieldValue($ai, 'name', $this->extractName($raw) ?? ''),
             'title' => $this->resolveFieldValue($ai, 'title', $this->extractJobTitle($raw) ?? ''),
-            'email' => $this->resolveFieldValue($ai, 'email', $this->extractEmail($raw)),
-            'phone' => $this->resolveFieldValue($ai, 'phone', $this->extractPhone($raw)),
-            'summary' => $this->resolveFieldValue($ai, 'summary', $this->extractSummary($raw)),
+            'email' => $this->resolveFieldValue($ai, 'email', $this->extractEmail($raw) ?? ''),
+            'phone' => $this->resolveFieldValue($ai, 'phone', $this->extractPhone($raw) ?? ''),
+            'address' => $this->resolveFieldValue($ai, 'address', ''),
+            'summary' => $this->resolveFieldValue($ai, 'summary', $this->extractSummary($raw) ?? ''),
             'skills' => $this->resolveFieldValue($ai, 'skills', []),
             'experience' => $this->resolveFieldValue($ai, 'experience', []),
             'education' => $this->resolveFieldValue($ai, 'education', []),
+            'languages' => $this->resolveFieldValue($ai, 'languages', []),
+            'certifications' => $this->resolveFieldValue($ai, 'certifications', []),
+            'projects' => $this->resolveFieldValue($ai, 'projects', []),
+            'awards' => $this->resolveFieldValue($ai, 'awards', []),
+            'interests' => $this->resolveFieldValue($ai, 'interests', []),
+            'references' => $this->resolveFieldValue($ai, 'references', []),
         ];
 
         return $result;

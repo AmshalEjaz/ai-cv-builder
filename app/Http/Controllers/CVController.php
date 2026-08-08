@@ -116,25 +116,60 @@ class CVController extends Controller
             'data.phone' => 'nullable|string|max:50',
             'data.summary' => 'nullable|string|max:5000',
             'data.skills' => 'nullable|string|max:2000',
+            'cv_file' => 'nullable|file|mimes:pdf,docx|max:10240',
+            'reprocess' => 'nullable|boolean',
         ]);
 
         $data = $request->input('data');
-        if (is_array($data)) {
-            if (isset($data['skills']) && is_string($data['skills'])) {
-                $data['skills'] = array_values(array_filter(array_map('trim', preg_split('/[,|\r\n]+/', $data['skills']) ?: [])));
-            }
-
-            $cv->update([
-                'title' => $request->title,
-                'ai_enhanced_data' => array_merge($cv->ai_enhanced_data ?? [], $data),
-                'template_id' => $request->template_id
-            ]);
-        } else {
-            $cv->update([
-                'title' => $request->title,
-                'template_id' => $request->template_id
-            ]);
+        if (is_array($data) && isset($data['skills']) && is_string($data['skills'])) {
+            $data['skills'] = array_values(array_filter(array_map('trim', preg_split('/[,|\r\n]+/', $data['skills']) ?: [])));
         }
+
+        $update = [
+            'title' => $request->title,
+            'template_id' => $request->template_id,
+        ];
+
+        // If the user attached a new/replacement CV file, or explicitly asked to
+        // re-run AI on the existing file, run it back through Ollama just like
+        // the initial upload does. Manual field edits (if any were also submitted
+        // in this same request) are applied on top, so they always win.
+        $shouldReprocess = $request->boolean('reprocess') || $request->hasFile('cv_file');
+
+        if ($shouldReprocess) {
+            try {
+                if ($request->hasFile('cv_file')) {
+                    $file = $request->file('cv_file');
+                    $text = $this->fileParser->extractText($file);
+                    $path = $this->fileParser->storeFile($file, Auth::id());
+                    $update['original_filename'] = $file->getClientOriginalName();
+                    $update['file_path'] = $path;
+                } else {
+                    // Re-run AI against the text we already extracted at upload time.
+                    $text = data_get($cv->parsed_data, 'raw_text', '');
+                    if ($text === '') {
+                        throw new \RuntimeException('No stored CV text available to re-process. Please attach a file.');
+                    }
+                }
+
+                $templateSlug = optional(Template::find($request->template_id))->slug;
+                $enhancedData = $this->aiService->parseAndEnhanceCV($text, $templateSlug);
+
+                // Manual edits submitted in the same request take priority over AI output.
+                $enhancedData = is_array($data) ? array_merge($enhancedData, $data) : $enhancedData;
+
+                $update['parsed_data'] = ['raw_text' => $text];
+                $update['ai_enhanced_data'] = $enhancedData;
+                $update['status'] = 'processed';
+            } catch (\Throwable $e) {
+                Log::error('CV re-process (edit) failed', ['cv_id' => $cv->id, 'error' => $e->getMessage()]);
+                return back()->withInput()->with('error', 'Could not re-process the CV with AI: ' . $e->getMessage());
+            }
+        } elseif (is_array($data)) {
+            $update['ai_enhanced_data'] = array_merge($cv->ai_enhanced_data ?? [], $data);
+        }
+
+        $cv->update($update);
 
         return redirect()->route('cvs.show', $cv)
             ->with('success', 'CV updated successfully!');
@@ -171,89 +206,23 @@ class CVController extends Controller
         ]);
     }
 
-    private function resolveTemplateBackgroundRenderer(): ?string
-    {
-        $candidates = [
-            'pdftoppm',
-            'magick',
-            'convert',
-            'C:\\ProgramData\\chocolatey\\lib\\poppler\\tools\\poppler\\bin\\pdftoppm.exe',
-            'C:\\tools\\poppler\\Library\\bin\\pdftoppm.exe',
-        ];
-
-        foreach ($candidates as $candidate) {
-            if ($candidate === 'pdftoppm' || $candidate === 'magick' || $candidate === 'convert') {
-                try {
-                    $result = Process::run([$candidate, '--version']);
-                    if ($result->successful()) {
-                        return $candidate;
-                    }
-                } catch (\Throwable $e) {
-                    // ignore and continue
-                }
-                continue;
-            }
-
-            if (is_file($candidate)) {
-                return $candidate;
-            }
-
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                $out = null;
-                @exec('where "' . $candidate . '" 2>nul', $out);
-                if (! empty($out) && is_file($out[0])) {
-                    return $out[0];
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private function buildTemplateBackgroundCommand(string $renderer, string $backgroundPath, string $prefix): string
-    {
-        if ($renderer === 'pdftoppm' || str_contains($renderer, 'pdftoppm')) {
-            return sprintf('%s -png -f 1 -l 1 %s %s', escapeshellarg($renderer), escapeshellarg($backgroundPath), escapeshellarg($prefix));
-        }
-
-        if ($renderer === 'magick' || $renderer === 'convert') {
-            return sprintf('%s -density 150 %s[0] -resize 1200x1600 %s-1.png', escapeshellarg($renderer), escapeshellarg($backgroundPath), escapeshellarg($prefix));
-        }
-
-        return sprintf('%s -png -f 1 -l 1 %s %s', escapeshellarg($renderer), escapeshellarg($backgroundPath), escapeshellarg($prefix));
-    }
-
     public function download(CV $cv)
     {
         $this->authorize('view', $cv);
 
         $cv->load('template');
 
-        // Prepare a lightweight template banner only when a small uploaded thumbnail exists.
-        $bgBase64 = null;
+        // NOTE: We intentionally do NOT render the template's thumbnail/PDF as a
+        // rasterized background image anymore. Those files are Canva-style mockups
+        // with sample text baked into the pixels (e.g. "Lorem ipsum", placeholder
+        // names/companies), so overlaying them behind the real CV data caused the
+        // old mockup content to show through / mix with the user's actual data.
+        // The visual "theme" for each template is now recreated with real CSS in
+        // cvs/pdf.blade.php (keyed by the template's settings->style), driven
+        // entirely by $cv->rendered_data, so only genuine text ever appears.
 
         try {
-            if ($cv->template) {
-                $template = $cv->template;
-
-                if ($template->thumbnail) {
-                    $thumbPath = public_path(ltrim($template->thumbnail, '/'));
-                    if (is_file($thumbPath)) {
-                        $fileSize = filesize($thumbPath);
-                        if ($fileSize !== false && $fileSize <= 250000) {
-                            $bgBase64 = base64_encode(file_get_contents($thumbPath));
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Failed to prepare template background', ['cv_id' => $cv->id, 'error' => $e->getMessage()]);
-            $bgBase64 = null;
-        }
-
-
-        try {
-            return Pdf::loadView('cvs.pdf', compact('cv', 'bgBase64'))
+            return Pdf::loadView('cvs.pdf', compact('cv'))
                 ->setPaper('a4')
                 ->download($cv->title . '.pdf');
         } catch (\Throwable $e) {

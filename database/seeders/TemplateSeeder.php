@@ -11,44 +11,47 @@ class TemplateSeeder extends Seeder
     {
         $templates = [
             [
-                'name' => 'Modern Teal',
-                'slug' => 'modern-teal',
-                'thumbnail' => 'images/templates/modern.png',
-                'pdf_path' => 'images/templates/modern-teal.pdf',
-                'description' => 'A clean, confident layout for technology, product, and creative roles.',
-                'settings' => ['accent' => '#167a74', 'style' => 'modern'],
-            ],
-            [
                 'name' => 'Executive Slate',
                 'slug' => 'executive-slate',
+                'description' => 'Modern and clean design for executives',
                 'thumbnail' => 'images/templates/executive-slate.png',
-                'pdf_path' => 'images/templates/executive-slate.pdf',
-                'description' => 'A structured and polished design for leadership and business professionals.',
-                'settings' => ['accent' => '#263746', 'style' => 'executive'],
+                'settings' => json_encode(['accent' => '#1a365d', 'font' => 'Inter']),
+                'is_active' => true,
             ],
             [
-                'name' => 'Creative Coral',
-                'slug' => 'creative-coral',
-                'thumbnail' => 'images/templates/gray and golden resume cv.png',
-                'pdf_path' => 'images/templates/gray and golden resume cv.pdf',
-                'description' => 'A bold, expressive template that helps creative experience stand out.',
-                'settings' => ['accent' => '#d46c5d', 'style' => 'creative'],
+                'name' => 'Minimalist Pro',
+                'slug' => 'minimalist-pro',
+                'description' => 'Simple and elegant minimalist design',
+                'thumbnail' => 'images/templates/minimalist-pro.png',
+                'settings' => json_encode(['accent' => '#2563eb', 'font' => 'Inter']),
+                'is_active' => true,
             ],
             [
-                'name' => 'Minimal Stone',
-                'slug' => 'minimal-stone',
-                'thumbnail' => 'images/templates/modern-tale.png',
-                'pdf_path' => 'images/templates/modern.pdf',
-                'description' => 'A calm, minimal layout that keeps the focus on your achievements.',
-                'settings' => ['accent' => '#7b756d', 'style' => 'minimal'],
+                'name' => 'Creative Bold',
+                'slug' => 'creative-bold',
+                'description' => 'Bold design for creative professionals',
+                'thumbnail' => 'images/templates/creative-bold.png',
+                'settings' => json_encode(['accent' => '#7c3aed', 'font' => 'Poppins']),
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Classic Elegant',
+                'slug' => 'classic-elegant',
+                'description' => 'Traditional elegant design',
+                'thumbnail' => 'images/templates/classic-elegant.png',
+                'settings' => json_encode(['accent' => '#0f172a', 'font' => 'Georgia']),
+                'is_active' => true,
             ],
         ];
 
         foreach ($templates as $template) {
+            // Update or Create - prevents duplicates
             Template::updateOrCreate(
-                ['slug' => $template['slug']],
-                [...$template, 'is_active' => true],
+                ['slug' => $template['slug']], // Find by slug
+                $template // Update with these values
             );
         }
+
+        $this->command->info('✅ Templates seeded successfully!');
     }
 }

@@ -30,9 +30,13 @@ class AIService
             // Send request adapted for Ollama v1 endpoints when configured
             $payload = [
                 'model' => $this->model,
-                // default legacy key 'prompt' for backward compatibility
                 'prompt' => $prompt,
                 'stream' => false,
+                'format' => 'json', // force Ollama to return strict, valid JSON only (no chatty plain text)
+                'options' => [
+                    'temperature' => 0,
+                    'num_ctx' => 8192,
+                ],
             ];
 
             // If using a /v1/ endpoint, use 'input' as the main string and reduce randomness
@@ -50,14 +54,12 @@ class AIService
             if ($response->successful()) {
                 $body = $response->json();
 
-                // Ollama v1 completions use choices[].text or choices[].text may be empty when streaming.
                 $rawResponse = '';
                 if (is_array($body) && isset($body['choices']) && is_array($body['choices']) && isset($body['choices'][0]['text'])) {
                     $rawResponse = trim((string) $body['choices'][0]['text']);
                 } elseif (is_array($body) && isset($body['response'])) {
                     $rawResponse = trim((string) $body['response']);
                 } else {
-                    // Fallback: try top-level string
                     $rawResponse = is_string($response->body()) ? trim($response->body()) : '';
                 }
 
@@ -67,7 +69,6 @@ class AIService
                 $result = json_decode(trim($rawResponse), true);
 
                 if (! is_array($result)) {
-                    // If the model did not return JSON, attempt a tolerant recovery: search for JSON substring
                     if (preg_match('/\{[\s\S]*\}/', $rawResponse, $m)) {
                         $try = json_decode($m[0], true);
                         if (is_array($try)) {
@@ -76,14 +77,12 @@ class AIService
                     }
                 }
 
-                // If still no structured response, try CLI fallback `ollama run <model>` when available
                 if (! is_array($result) || empty($rawResponse)) {
                     try {
                         if (class_exists(\Illuminate\Support\Facades\Process::class)) {
                             Log::info('AIService: attempting CLI fallback to ollama run', ['model' => $this->model]);
                             $cli = trim((string) \Illuminate\Support\Facades\Process::run(['where', 'ollama'])->output());
                             if ($cli === '') {
-                                // try common install path
                                 $cli = 'C:\\Users\\User\\AppData\\Local\\Programs\\Ollama\\ollama.exe';
                             }
 
@@ -94,7 +93,6 @@ class AIService
                                 $out = trim($proc->output());
 
                                 if ($proc->successful() && $out !== '') {
-                                    // Try to extract JSON from CLI output
                                     if (preg_match('/\{[\s\S]*\}/', $out, $m)) {
                                         $try = json_decode($m[0], true);
                                         if (is_array($try)) {
@@ -102,7 +100,6 @@ class AIService
                                             $rawResponse = $out;
                                         }
                                     } else {
-                                        // If output looks like JSON block on its own line, accept it
                                         $maybe = trim($out);
                                         $try2 = json_decode($maybe, true);
                                         if (is_array($try2)) {
@@ -119,18 +116,19 @@ class AIService
                 }
 
                 if (! is_array($result)) {
-                    Log::warning('AIService: invalid JSON from model', ['raw' => mb_substr($rawResponse,0,1000)]);
+                    Log::warning('AIService: invalid JSON from model', ['raw' => mb_substr($rawResponse, 0, 1000)]);
                     return $this->getFallbackParsedData($text);
                 }
 
-                // Ensure the model didn't inject sample/template content by validating critical fields against the source text
                 $result = $this->ensureResponseMatchesSource($result, $text);
 
                 return $this->validateAndFormatResponse($result);
             }
 
             return $this->getFallbackParsedData($text);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // Catches \Error too (e.g. calling a method on false), not just \Exception,
+            // so a single bad date string or malformed response can never 500 the request.
             Log::error('AI Service Error: ' . $e->getMessage(), ['exception' => $e]);
             return $this->getFallbackParsedData($text);
         }
@@ -180,67 +178,6 @@ Desired JSON schema:
       "institution": "School or university name",
       "degree": "Degree or program",
       "year": "Year completed or range"
-    }
-  ]
-}
-
-Example input and expected output:
-Input:
-1+123- 456- 7890 hello@reallygreatsite.com 123 Anywhere St., Any City
-
-# Mohaib Ejaz
-
-Human Research LORNA ALVARADO mohaibkhan86@gmail.com +923059211533 Sales Representative
-
-## Professional Summary
-
-With a Bachelor of Business Administration degree in Human Resource Management, and honing skills in critical analysis and marketing technology and global connectivity for organizational growth. My strong work ethic and ability to adapt to new challenges make me an asset in any team.
-
-## SKILLS
-
-Client Acquisition Conflict Resolution B2B Sales Negotiation Relationship Management Software Development
-
-## WORK EXPERIENCE
-
-Senior Sales Representative | Savvy Financial Services | January 2021 - Present
-Created and implemented sales strategies that led to a 25% boost in annual revenue.
-
-Sales Agent | Bold Design Studio | June 2017 - December 2018
-Engaged in prospecting and qualifying leads via cold calling, email campaigns, and networking events.
-
-## EDUCATION
-
-University of Eastborough | Bachelor of Business Management | 2020 - 2023
-
-Output:
-{
-  "name": "Mohaib Ejaz",
-  "title": "Sales Representative",
-  "email": "mohaibkhan86@gmail.com",
-  "phone": "+923059211533",
-  "summary": "Human Resources professional with a Bachelor of Business Administration in Human Resource Management. Strong communicator with experience driving recruitment, employee engagement, and process improvements.",
-  "skills": ["Client Acquisition", "Conflict Resolution", "B2B Sales", "Negotiation", "Relationship Management", "Software Development"],
-  "experience": [
-    {
-      "company": "Savvy Financial Services",
-      "position": "Senior Sales Representative",
-      "start_date": "January 2021",
-      "end_date": "Present",
-      "description": "Created and implemented sales strategies that increased annual revenue by 25% while managing key client relationships and improving team collaboration."
-    },
-    {
-      "company": "Bold Design Studio",
-      "position": "Sales Agent",
-      "start_date": "June 2017",
-      "end_date": "December 2018",
-      "description": "Prospected and qualified leads through cold calling, email campaigns, and networking events, boosting sales by 20%."
-    }
-  ],
-  "education": [
-    {
-      "institution": "University of Eastborough",
-      "degree": "Bachelor of Business Management",
-      "year": "2020 - 2023"
     }
   ]
 }
@@ -418,11 +355,16 @@ EOT;
             return ($start !== '' ? $start . ' - ' : '') . 'Present';
         }
 
+        // "2021-03" style (year-month) -> "March 2021"
         if (preg_match('/^(\d{4})\s*-\s*(\d{1,2})$/', $date, $matches)) {
             $month = (int) $matches[2];
             if ($month >= 1 && $month <= 12) {
-                return \DateTime::createFromFormat('n Y', "{$month} {$matches[1]}")->format('F Y');
+                $parsedMonth = \DateTime::createFromFormat('n Y', "{$month} {$matches[1]}");
+                if ($parsedMonth !== false) {
+                    return $parsedMonth->format('F Y');
+                }
             }
+            // fall through to generic cleanup below if that didn't work
         }
 
         if (preg_match('/^(\d{4})\s*-\s*(\d{4})$/', $date, $matches)) {
@@ -450,18 +392,12 @@ EOT;
         return $this->parseLocally($text);
     }
 
-    /**
-     * Ensure the AI-returned fields (especially name/email/phone) are actually present
-     * in the source text. If not, prefer locally-extracted values from parseLocally().
-     */
     private function ensureResponseMatchesSource(array $result, string $source): array
     {
         $fallback = $this->parseLocally($source);
 
-        // Normalize source for simple containment checks
         $normSource = mb_strtolower(preg_replace('/\s+/', ' ', $source));
 
-        // Email: ensure returned email exists in source (or fallback)
         if (! empty($result['email'])) {
             $email = mb_strtolower($result['email']);
             if (strpos($normSource, $email) === false) {
@@ -471,17 +407,15 @@ EOT;
             $result['email'] = $fallback['email'] ?? '';
         }
 
-        // Phone: simple digit-only match
         if (! empty($result['phone'])) {
             $cleanPhone = preg_replace('/[^0-9+]/', '', $result['phone']);
-            if ($cleanPhone !== '' && strpos(preg_replace('/[^0-9+]/','', $normSource), preg_replace('/[^0-9+]/','',$cleanPhone)) === false) {
+            if ($cleanPhone !== '' && strpos(preg_replace('/[^0-9+]/', '', $normSource), preg_replace('/[^0-9+]/', '', $cleanPhone)) === false) {
                 $result['phone'] = $fallback['phone'] ?? '';
             }
         } else {
             $result['phone'] = $fallback['phone'] ?? '';
         }
 
-        // Name: more heuristic — prefer AI name only if parts appear in source
         if (! empty($result['name'])) {
             $name = trim($result['name']);
             $pieces = preg_split('/\s+/', mb_strtolower($name));
@@ -596,15 +530,16 @@ EOT;
             $response = Http::post($this->apiUrl, [
                 'model' => $this->model,
                 'prompt' => $prompt,
-                'stream' => false
+                'stream' => false,
+                'options' => ['temperature' => 0.3],
             ]);
 
             if ($response->successful()) {
-                return trim($response->json()['response']);
+                return trim((string) data_get($response->json(), 'response', $text));
             }
 
             return $text;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('AI Improvement Error: ' . $e->getMessage());
             return $text;
         }

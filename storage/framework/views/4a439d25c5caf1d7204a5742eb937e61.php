@@ -1,25 +1,25 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <section class="section-heading page-title">
     <div>
         <p class="eyebrow">CV DETAILS</p>
-        <h1>{{ $cv->title }}</h1>
-        <p class="muted">{{ $cv->original_filename }}</p>
+        <h1><?php echo e($cv->title); ?></h1>
+        <p class="muted"><?php echo e($cv->original_filename); ?></p>
     </div>
     <div class="action-group">
-        <a class="button button-secondary" href="{{ route('cvs.edit', $cv) }}">Edit</a>
-        <a class="button" href="{{ route('cvs.download', $cv) }}">Download PDF</a>
-        <a class="button button-secondary" href="{{ route('cvs.index') }}">Back</a>
+        <a class="button button-secondary" href="<?php echo e(route('cvs.edit', $cv)); ?>">Edit</a>
+        <a class="button" href="<?php echo e(route('cvs.download', $cv)); ?>">Download PDF</a>
+        <a class="button button-secondary" href="<?php echo e(route('cvs.index')); ?>">Back</a>
     </div>
 </section>
 
 <div class="cv-preview-wrapper">
     <div class="cv-preview-card">
-        @php
+        <?php
             $data = $cv->rendered_data ?? [];
             $accent = data_get($cv->template?->settings, 'accent', '#2563eb');
-        @endphp
+        ?>
 
         <style>
             .cv-preview-wrapper {
@@ -54,7 +54,7 @@
             .cv-header-left .name {
                 font-size: 32px;
                 font-weight: 700;
-                color: {{ $accent }};
+                color: <?php echo e($accent); ?>;
                 margin: 0 0 4px 0;
                 letter-spacing: -0.5px;
             }
@@ -97,7 +97,7 @@
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 1.2px;
-                color: {{ $accent }};
+                color: <?php echo e($accent); ?>;
                 margin: 0 0 12px 0;
                 padding-bottom: 8px;
                 border-bottom: 2px solid #f0f4f8;
@@ -111,7 +111,7 @@
                 display: inline-block;
                 width: 4px;
                 height: 18px;
-                background: {{ $accent }};
+                background: <?php echo e($accent); ?>;
                 border-radius: 2px;
             }
 
@@ -142,9 +142,9 @@
             }
 
             .cv-skill-tag:hover {
-                background: {{ $accent }};
+                background: <?php echo e($accent); ?>;
                 color: #ffffff;
-                border-color: {{ $accent }};
+                border-color: <?php echo e($accent); ?>;
                 transform: translateY(-1px);
             }
 
@@ -323,114 +323,118 @@
 
         <div class="cv-header">
             <div class="cv-header-left">
-                <h1 class="name">{{ data_get($data, 'name', 'Your Name') }}</h1>
-                @if(data_get($data, 'title'))
-                    <p class="title">{{ data_get($data, 'title') }}</p>
-                @endif
+                <h1 class="name"><?php echo e(data_get($data, 'name', 'Your Name')); ?></h1>
+                <?php if(data_get($data, 'title')): ?>
+                    <p class="title"><?php echo e(data_get($data, 'title')); ?></p>
+                <?php endif; ?>
             </div>
             <div class="cv-header-right">
-                @if(data_get($data, 'email'))
-                    <span class="contact-item">✉️ <strong>{{ data_get($data, 'email') }}</strong></span>
-                @endif
-                @if(data_get($data, 'phone'))
-                    <span class="contact-item">📱 <strong>{{ data_get($data, 'phone') }}</strong></span>
-                @endif
-                @if(data_get($data, 'address'))
-                    <span class="contact-item">📍 <strong>{{ data_get($data, 'address') }}</strong></span>
-                @endif
+                <?php if(data_get($data, 'email')): ?>
+                    <span class="contact-item">✉️ <strong><?php echo e(data_get($data, 'email')); ?></strong></span>
+                <?php endif; ?>
+                <?php if(data_get($data, 'phone')): ?>
+                    <span class="contact-item">📱 <strong><?php echo e(data_get($data, 'phone')); ?></strong></span>
+                <?php endif; ?>
+                <?php if(data_get($data, 'address')): ?>
+                    <span class="contact-item">📍 <strong><?php echo e(data_get($data, 'address')); ?></strong></span>
+                <?php endif; ?>
             </div>
         </div>
 
-        @if(data_get($data, 'summary'))
+        <?php if(data_get($data, 'summary')): ?>
         <div class="cv-section">
             <h2 class="cv-section-title">Professional Summary</h2>
-            <p class="cv-summary">{{ data_get($data, 'summary') }}</p>
+            <p class="cv-summary"><?php echo e(data_get($data, 'summary')); ?></p>
         </div>
-        @endif
+        <?php endif; ?>
 
-        @if(count(data_get($data, 'skills', [])))
+        <?php if(count(data_get($data, 'skills', []))): ?>
         <div class="cv-section">
             <h2 class="cv-section-title">Skills</h2>
             <div class="cv-skills">
-                @foreach(data_get($data, 'skills', []) as $skill)
-                    <span class="cv-skill-tag">{{ $skill }}</span>
-                @endforeach
+                <?php $__currentLoopData = data_get($data, 'skills', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $skill): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <span class="cv-skill-tag"><?php echo e($skill); ?></span>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
 
        
-        @if(count(data_get($data, 'experience', [])))
+        <?php if(count(data_get($data, 'experience', []))): ?>
         <div class="cv-section">
             <h2 class="cv-section-title">Work Experience</h2>
-            @foreach(data_get($data, 'experience', []) as $exp)
+            <?php $__currentLoopData = data_get($data, 'experience', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $exp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="cv-experience-item">
                     <div class="cv-exp-header">
                         <div>
-                            <span class="cv-exp-position">{{ data_get($exp, 'position', 'Position') }}</span>
-                            <span class="cv-exp-company">· {{ data_get($exp, 'company', 'Company') }}</span>
+                            <span class="cv-exp-position"><?php echo e(data_get($exp, 'position', 'Position')); ?></span>
+                            <span class="cv-exp-company">· <?php echo e(data_get($exp, 'company', 'Company')); ?></span>
                         </div>
                         <span class="cv-exp-date">
-                            {{ data_get($exp, 'start_date', '') }}
-                            @if(data_get($exp, 'start_date') && data_get($exp, 'end_date')) — @endif
-                            {{ data_get($exp, 'end_date', 'Present') }}
+                            <?php echo e(data_get($exp, 'start_date', '')); ?>
+
+                            <?php if(data_get($exp, 'start_date') && data_get($exp, 'end_date')): ?> — <?php endif; ?>
+                            <?php echo e(data_get($exp, 'end_date', 'Present')); ?>
+
                         </span>
                     </div>
-                    @if(data_get($exp, 'description'))
-                        <p class="cv-exp-description">{{ data_get($exp, 'description') }}</p>
-                    @endif
+                    <?php if(data_get($exp, 'description')): ?>
+                        <p class="cv-exp-description"><?php echo e(data_get($exp, 'description')); ?></p>
+                    <?php endif; ?>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
-        @endif
+        <?php endif; ?>
 
        
-        @if(count(data_get($data, 'education', [])))
+        <?php if(count(data_get($data, 'education', []))): ?>
         <div class="cv-section">
             <h2 class="cv-section-title">Education</h2>
-            @foreach(data_get($data, 'education', []) as $edu)
+            <?php $__currentLoopData = data_get($data, 'education', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $edu): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="cv-education-item">
                     <div>
-                        <span class="cv-edu-degree">{{ data_get($edu, 'degree', 'Degree') }}</span>
-                        <span class="cv-edu-institution">· {{ data_get($edu, 'institution', 'Institution') }}</span>
+                        <span class="cv-edu-degree"><?php echo e(data_get($edu, 'degree', 'Degree')); ?></span>
+                        <span class="cv-edu-institution">· <?php echo e(data_get($edu, 'institution', 'Institution')); ?></span>
                     </div>
-                    @if(data_get($edu, 'year'))
-                        <span class="cv-edu-year">{{ data_get($edu, 'year') }}</span>
-                    @endif
+                    <?php if(data_get($edu, 'year')): ?>
+                        <span class="cv-edu-year"><?php echo e(data_get($edu, 'year')); ?></span>
+                    <?php endif; ?>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
-        @endif
+        <?php endif; ?>
 
       
-        @if(count(data_get($data, 'languages', [])))
+        <?php if(count(data_get($data, 'languages', []))): ?>
         <div class="cv-section">
             <h2 class="cv-section-title">Languages</h2>
             <div style="display:flex; flex-wrap:wrap; gap:12px;">
-                @foreach(data_get($data, 'languages', []) as $lang)
+                <?php $__currentLoopData = data_get($data, 'languages', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lang): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <span style="background:#f8fafc; padding:6px 16px; border-radius:20px; font-size:14px; color:#1e293b;">
-                        <strong>{{ data_get($lang, 'language') }}</strong>
-                        @if(data_get($lang, 'proficiency'))
-                            <span style="color:#94a3b8; font-weight:400;">({{ data_get($lang, 'proficiency') }})</span>
-                        @endif
+                        <strong><?php echo e(data_get($lang, 'language')); ?></strong>
+                        <?php if(data_get($lang, 'proficiency')): ?>
+                            <span style="color:#94a3b8; font-weight:400;">(<?php echo e(data_get($lang, 'proficiency')); ?>)</span>
+                        <?php endif; ?>
                     </span>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
 
         <div class="cv-footer">
             <span class="cv-footer-info">
-                Template: <strong>{{ $cv->template?->name ?? 'No template' }}</strong>
-                @if($cv->template?->pdf_path)
+                Template: <strong><?php echo e($cv->template?->name ?? 'No template'); ?></strong>
+                <?php if($cv->template?->pdf_path): ?>
                     <span style="color:#22c55e;">· PDF Design: Uploaded ✓</span>
-                @endif
+                <?php endif; ?>
             </span>
             <span class="cv-footer-badge">
                 <span class="dot"></span>
-                {{ $cv->status ?? 'Draft' }}
+                <?php echo e($cv->status ?? 'Draft'); ?>
+
             </span>
         </div>
     </div>
 </div>
-@endsection 
+<?php $__env->stopSection(); ?> 
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\ai-cv-builder\resources\views/cvs/show.blade.php ENDPATH**/ ?>
