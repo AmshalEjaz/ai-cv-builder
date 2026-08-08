@@ -50,17 +50,33 @@ class CV extends Model
         $raw = isset($parsed['raw_text']) ? $parsed['raw_text'] : '';
 
         $result = [
-            'name' => $ai['name'] ?? $this->extractName($raw) ?? $this->title,
-            'title' => $ai['title'] ?? $this->extractJobTitle($raw) ?? ($ai['title'] ?? ''),
-            'email' => $ai['email'] ?? $this->extractEmail($raw),
-            'phone' => $ai['phone'] ?? $this->extractPhone($raw),
-            'summary' => $ai['summary'] ?? $this->extractSummary($raw),
-            'skills' => $ai['skills'] ?? [],
-            'experience' => $ai['experience'] ?? [],
-            'education' => $ai['education'] ?? [],
+            'name' => $this->resolveFieldValue($ai, 'name', $this->extractName($raw) ?? $this->title),
+            'title' => $this->resolveFieldValue($ai, 'title', $this->extractJobTitle($raw) ?? ''),
+            'email' => $this->resolveFieldValue($ai, 'email', $this->extractEmail($raw)),
+            'phone' => $this->resolveFieldValue($ai, 'phone', $this->extractPhone($raw)),
+            'summary' => $this->resolveFieldValue($ai, 'summary', $this->extractSummary($raw)),
+            'skills' => $this->resolveFieldValue($ai, 'skills', []),
+            'experience' => $this->resolveFieldValue($ai, 'experience', []),
+            'education' => $this->resolveFieldValue($ai, 'education', []),
         ];
 
         return $result;
+    }
+
+    private function resolveFieldValue(array $data, string $key, $fallback)
+    {
+        $value = $data[$key] ?? null;
+
+        if (is_string($value)) {
+            $value = trim($value);
+            return $value !== '' ? $value : $fallback;
+        }
+
+        if (is_array($value)) {
+            return ! empty($value) ? $value : $fallback;
+        }
+
+        return $fallback;
     }
 
     private function extractEmail(string $text): ?string

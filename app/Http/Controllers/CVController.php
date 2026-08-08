@@ -171,70 +171,80 @@ class CVController extends Controller
         ]);
     }
 
+    private function resolveTemplateBackgroundRenderer(): ?string
+    {
+        $candidates = [
+            'pdftoppm',
+            'magick',
+            'convert',
+            'C:\\ProgramData\\chocolatey\\lib\\poppler\\tools\\poppler\\bin\\pdftoppm.exe',
+            'C:\\tools\\poppler\\Library\\bin\\pdftoppm.exe',
+        ];
+
+        foreach ($candidates as $candidate) {
+            if ($candidate === 'pdftoppm' || $candidate === 'magick' || $candidate === 'convert') {
+                try {
+                    $result = Process::run([$candidate, '--version']);
+                    if ($result->successful()) {
+                        return $candidate;
+                    }
+                } catch (\Throwable $e) {
+                    // ignore and continue
+                }
+                continue;
+            }
+
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $out = null;
+                @exec('where "' . $candidate . '" 2>nul', $out);
+                if (! empty($out) && is_file($out[0])) {
+                    return $out[0];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function buildTemplateBackgroundCommand(string $renderer, string $backgroundPath, string $prefix): string
+    {
+        if ($renderer === 'pdftoppm' || str_contains($renderer, 'pdftoppm')) {
+            return sprintf('%s -png -f 1 -l 1 %s %s', escapeshellarg($renderer), escapeshellarg($backgroundPath), escapeshellarg($prefix));
+        }
+
+        if ($renderer === 'magick' || $renderer === 'convert') {
+            return sprintf('%s -density 150 %s[0] -resize 1200x1600 %s-1.png', escapeshellarg($renderer), escapeshellarg($backgroundPath), escapeshellarg($prefix));
+        }
+
+        return sprintf('%s -png -f 1 -l 1 %s %s', escapeshellarg($renderer), escapeshellarg($backgroundPath), escapeshellarg($prefix));
+    }
+
     public function download(CV $cv)
     {
         $this->authorize('view', $cv);
 
         $cv->load('template');
 
-        // Precompute template background image base64 to avoid complex Blade logic.
+        // Prepare a lightweight template banner only when a small uploaded thumbnail exists.
         $bgBase64 = null;
-
-        // Prepare pdftoppm path candidates (so we can render a template PDF if the admin opted in)
-        $pdftoppmCandidates = [
-            'pdftoppm',
-            'C:\\ProgramData\\chocolatey\\lib\\poppler\\tools\\poppler\\bin\\pdftoppm.exe',
-            'C:\\tools\\poppler\\Library\\bin\\pdftoppm.exe',
-        ];
-        $resolvedPdftoppm = null;
-        foreach ($pdftoppmCandidates as $c) {
-            if (is_file($c)) { $resolvedPdftoppm = $c; break; }
-            // try where on Windows
-            if (strtoupper(substr(PHP_OS,0,3)) === 'WIN') {
-                $out = null; @exec('where "' . $c . '" 2>nul', $out);
-                if (!empty($out) && is_file($out[0])) { $resolvedPdftoppm = $out[0]; break; }
-            }
-        }
-        if (!$resolvedPdftoppm) $resolvedPdftoppm = 'pdftoppm';
 
         try {
             if ($cv->template) {
-                $thumbnail = $cv->template->thumbnail;
-                $pdfPath = $cv->template->pdf_path;
+                $template = $cv->template;
 
-                if ($thumbnail) {
-                    $thumbPath = public_path(ltrim($thumbnail, '/'));
-                    if (file_exists($thumbPath)) {
-                        $bgBase64 = base64_encode(file_get_contents($thumbPath));
-                    }
-                }
-
-                // If the template is explicitly marked to use PDF as background,
-                // render the first page to PNG using pdftoppm and use that image.
-                if ($cv->template->use_pdf_background && $pdfPath) {
-                    try {
-                        $absPdf = public_path(ltrim($pdfPath, '/'));
-                        if (file_exists($absPdf)) {
-                            $tmpDir = storage_path('app/template_bg/' . uniqid());
-                            if (!is_dir($tmpDir)) mkdir($tmpDir, 0755, true);
-                            $prefix = $tmpDir . DIRECTORY_SEPARATOR . 'bg';
-                            // Render first page only
-                            $cmd = sprintf('%s -png -f 1 -l 1 %s %s', escapeshellarg($resolvedPdftoppm), escapeshellarg($absPdf), escapeshellarg($prefix));
-                            $r = Process::run($cmd);
-                            Log::info('Template pdftoppm render', ['cmd' => $cmd, 'out' => $r->output(), 'err' => $r->error(), 'code' => $r->exitCode()]);
-                            $png = $prefix . '-1.png';
-                            if (is_file($png)) {
-                                $bgBase64 = base64_encode(file_get_contents($png));
-                            }
-                            // cleanup
-                            @unlink($png);
-                            @rmdir($tmpDir);
+                if ($template->thumbnail) {
+                    $thumbPath = public_path(ltrim($template->thumbnail, '/'));
+                    if (is_file($thumbPath)) {
+                        $fileSize = filesize($thumbPath);
+                        if ($fileSize !== false && $fileSize <= 250000) {
+                            $bgBase64 = base64_encode(file_get_contents($thumbPath));
                         }
-                    } catch (\Throwable $e) {
-                        Log::warning('Failed to render template PDF to image', ['cv_id' => $cv->id, 'error' => $e->getMessage()]);
                     }
                 }
-                
             }
         } catch (\Throwable $e) {
             Log::warning('Failed to prepare template background', ['cv_id' => $cv->id, 'error' => $e->getMessage()]);
