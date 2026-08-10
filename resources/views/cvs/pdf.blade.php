@@ -6,6 +6,7 @@
     $title = data_get($data, 'title');
     $email = data_get($data, 'email');
     $phone = data_get($data, 'phone');
+    $location = data_get($data, 'location');
     $skills = data_get($data, 'skills', []);
     $education = data_get($data, 'education', []);
     $summary = data_get($data, 'summary');
@@ -64,8 +65,8 @@
         .modern-teal .body { padding: 26px 40px 34px; }
         .modern-teal .section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: {{ $accent }}; margin: 0 0 10px; }
         .modern-teal .section-title.spaced { margin-top: 22px; }
-        .modern-teal .col-left { float: left; width: 34%; }
-        .modern-teal .col-right { float: left; width: 66%; padding-left: 24px; }
+        .modern-teal .col-left { float: left; width: 36%; padding-right: 16px; }
+        .modern-teal .col-right { float: left; width: 64%; padding-left: 24px; }
         .modern-teal .edu-item, .modern-teal .exp-item { margin-bottom: 13px; }
         .modern-teal .edu-item .degree, .modern-teal .exp-item .position { font-weight: bold; font-size: 11px; color: #1f1f1f; }
         .modern-teal .edu-item .meta, .modern-teal .exp-item .meta { font-size: 9.5px; color: {{ $accent }}; margin-bottom: 4px; }
@@ -127,7 +128,7 @@
         .centered-classic .name-box h1 { margin: 0; font-size: 26px; font-weight: normal; color: #1f1f1f; }
         .centered-classic .subtitle-band { background: #efefef; text-align: center; padding: 14px; margin: 18px 0 0; font-size: 13px; color: #444444; }
         .centered-classic .body { padding: 26px 36px 34px; }
-        .centered-classic .col-left { float: left; width: 30%; border-right: 1px solid #f0ad4e; padding-right: 18px; }
+        .centered-classic .col-left { float: left; width: 32%; border-right: 1px solid #f0ad4e; padding-right: 18px; }
         .centered-classic .col-right { float: left; width: 68%; padding-left: 24px; }
         .centered-classic .section-title { font-size: 12.5px; font-weight: bold; text-transform: uppercase; color: #1f1f1f; margin: 18px 0 9px; }
         .centered-classic .section-title.first { margin-top: 0; }
@@ -150,8 +151,8 @@
         .art-director .banner .contact-row { font-size: 9px; color: #cfcfcf; margin-top: 10px; }
         .art-director .accent-strip { height: 7px; background: {{ $accent }}; }
         .art-director .body { padding: 26px 40px 34px; }
-        .art-director .col-left { float: left; width: 34%; }
-        .art-director .col-right { float: left; width: 66%; padding-left: 24px; }
+        .art-director .col-left { float: left; width: 36%; padding-right: 16px; }
+        .art-director .col-right { float: left; width: 64%; padding-left: 24px; }
         .art-director .section-title { font-size: 12.5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.04em; color: #1f1f1f; margin: 0 0 10px; }
         .art-director .section-title.spaced { margin-top: 20px; }
         .art-director .edu-item { margin-bottom: 12px; }
@@ -297,10 +298,11 @@
               <div class="sidebar-inner">
                 <div class="avatar">{{ $initials }}</div>
 
-                @if($email || $phone)
+                @if($email || $phone || $location)
                     <div class="section-title">Contact</div>
                     @if($phone)<div class="contact-row">{{ $phone }}</div>@endif
                     @if($email)<div class="contact-row">{{ $email }}</div>@endif
+                    @if($location)<div class="contact-row">{{ $location }}</div>@endif
                 @endif
 
                 @if(count($education))
@@ -365,6 +367,7 @@
                         <div class="section-title first">Contact</div>
                         @if($phone)<div class="contact-row">{{ $phone }}</div>@endif
                         @if($email)<div class="contact-row">{{ $email }}</div>@endif
+                        @if($location)<div class="contact-row">{{ $location }}</div>@endif
                     @endif
 
                     @if(count($education))

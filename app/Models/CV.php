@@ -45,23 +45,113 @@ class CV extends Model
      */
     public function getRenderedDataAttribute(): array
     {
-        $ai = $this->ai_enhanced_data ?? [];
-        $parsed = $this->parsed_data ?? [];
-        $raw = isset($parsed['raw_text']) ? $parsed['raw_text'] : '';
+        $ai = is_array($this->ai_enhanced_data) ? $this->ai_enhanced_data : [];
+        $parsed = is_array($this->parsed_data) ? $this->parsed_data : [];
+        $raw = (string) ($parsed['raw_text'] ?? '');
 
-        $result = [
-            'name' => $ai['name'] ?? $this->extractName($raw) ?? $this->title,
-            'title' => $ai['title'] ?? $this->extractJobTitle($raw) ?? ($ai['title'] ?? ''),
-            'email' => $ai['email'] ?? $this->extractEmail($raw),
-            'phone' => $ai['phone'] ?? $this->extractPhone($raw),
-            'summary' => $ai['summary'] ?? $this->extractSummary($raw),
-            'skills' => $ai['skills'] ?? [],
-            'experience' => $ai['experience'] ?? [],
-            'education' => $ai['education'] ?? [],
-            'languages' => $ai['languages'] ?? [],
+        // Never let null/empty AI fields erase information from the uploaded CV.
+        // The AI result is preferred only when it actually contains a value.
+        $skills = $ai['skills'] ?? [];
+        if (!is_array($skills) || count($skills) === 0) {
+            $skills = $this->extractSkills($raw);
+        }
+
+        $experience = $ai['experience'] ?? [];
+        if (!is_array($experience) || count($experience) === 0) {
+            $experience = $this->extractExperience($raw);
+        }
+
+        $education = $ai['education'] ?? [];
+        if (!is_array($education) || count($education) === 0) {
+            $education = $this->extractEducation($raw);
+        }
+
+        return [
+            'name' => $this->nonEmpty($ai['name'] ?? null, $this->extractName($raw), $this->title),
+            'title' => $this->nonEmpty($ai['title'] ?? null, $this->extractJobTitle($raw), ''),
+            'email' => $this->nonEmpty($ai['email'] ?? null, $this->extractEmail($raw), ''),
+            'phone' => $this->nonEmpty($ai['phone'] ?? null, $this->extractPhone($raw), ''),
+            'location' => $this->nonEmpty($ai['location'] ?? null, $this->extractLocation($raw), ''),
+            'summary' => $this->nonEmpty($ai['summary'] ?? null, $this->extractSummary($raw), ''),
+            'skills' => array_values(array_unique(array_filter($skills, fn($v) => is_scalar($v) && trim((string)$v) !== ''))),
+            'experience' => is_array($experience) ? $experience : [],
+            'education' => is_array($education) ? $education : [],
+            'projects' => is_array($ai['projects'] ?? null) ? $ai['projects'] : $this->extractProjects($raw),
+            'certifications' => is_array($ai['certifications'] ?? null) ? $ai['certifications'] : [],
+            'languages' => is_array($ai['languages'] ?? null) ? $ai['languages'] : [],
+            'achievements' => is_array($ai['achievements'] ?? null) ? $ai['achievements'] : [],
+            'volunteer' => is_array($ai['volunteer'] ?? null) ? $ai['volunteer'] : [],
+            'references' => is_array($ai['references'] ?? null) ? $ai['references'] : [],
         ];
+    }
 
-        return $result;
+    private function nonEmpty($primary, ?string $fallback, string $default = ''): string
+    {
+        $primary = is_scalar($primary) ? trim((string)$primary) : '';
+        if ($primary !== '') return $primary;
+        return $fallback !== null && trim($fallback) !== '' ? trim($fallback) : $default;
+    }
+
+    private function extractSkills(string $text): array
+    {
+        $lines = array_values(array_filter(array_map('trim', preg_split('/\R/', $text) ?: [])));
+        $skills = [];
+        $in = false;
+        foreach ($lines as $line) {
+            $h = strtolower(rtrim($line, ':'));
+            if ($h === 'skills' || $h === 'technical skills' || $h === 'core skills') { $in = true; continue; }
+            if ($in && in_array($h, ['education','profile','summary','experience','work experience','projects','key projects','certifications','languages','references'], true)) break;
+            if (!$in || preg_match('/^(languages? & frameworks|web technologies|database|databases|other|tools?|platforms?)$/i', $line)) continue;
+            foreach (preg_split('/[,;|]+/', ltrim($line, "-*• \t"), -1, PREG_SPLIT_NO_EMPTY) ?: [] as $skill) {
+                $skill=trim($skill);
+                if ($skill !== '') $skills[]=$skill;
+            }
+        }
+        return array_values(array_unique($skills));
+    }
+
+    private function extractLocation(string $text): ?string
+    {
+        foreach (array_values(array_filter(array_map('trim', preg_split('/\R/', $text) ?: []))) as $line) {
+            if (preg_match('/\b(Pakistan|India|UAE|United Arab Emirates|UK|United Kingdom|USA|United States|Canada|Australia)\b/i', $line)) {
+                if (!str_contains($line, '@') && !preg_match('/\d{7,}/', $line)) return $line;
+            }
+        }
+        return null;
+    }
+
+    private function extractExperience(string $text): array
+    {
+        // Keep this conservative: if AI already supplied experience, this is only
+        // a fallback. It extracts obvious job blocks and stops at Projects/Education.
+        $lines=array_values(array_filter(array_map('trim', preg_split('/\R/', $text) ?: [])));
+        $start=-1; $end=count($lines);
+        foreach($lines as $i=>$line){
+            $h=strtolower(rtrim($line, ':'));
+            if($start<0 && in_array($h,['experience','work experience','professional experience','employment history'],true)){$start=$i+1;continue;}
+            if($start>=0 && in_array($h,['education','projects','key projects','selected projects','certifications','languages','references'],true)){ $end=$i; break; }
+        }
+        if($start<0) return [];
+        $blocks=[]; $current=null; $desc=[];
+        $flush=function() use (&$blocks,&$current,&$desc){
+            if(is_array($current) && (($current['company']??'')!=='' || ($current['position']??'')!=='')){
+                $current['description']=trim(implode(' ', $desc)); $blocks[]=$current;
+            }
+            $current=null; $desc=[];
+        };
+        for($i=$start;$i<$end;$i++){
+            $line=$lines[$i];
+            if(preg_match('/^(developer|engineer|designer|manager|analyst|consultant|architect|administrator|specialist|intern)(?:\s*\/\s*.+)?$/i',$line)){
+                if($current && !empty($current['position'])) $flush();
+                $current=['position'=>$line,'company'=>'','start_date'=>'','end_date'=>'']; continue;
+            }
+            if($current && ($current['company']??'')==='' && preg_match('/^(.+?)(?:\s*[·|]\s*.*)?$/u',$line,$m) && !preg_match('/^(building|developed|developing|architected|engineered|collaborating|built|designed|created|responsible)\b/i',$line)){
+                $current['company']=trim($m[1]); continue;
+            }
+            if($current) $desc[]=ltrim($line,'-*• \t');
+        }
+        $flush();
+        return $blocks;
     }
 
     private function extractEmail(string $text): ?string

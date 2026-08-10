@@ -12,7 +12,7 @@
         <label>Email<input type="email" name="data[email]" value="{{ old('data.email', data_get($data, 'email')) }}"></label>
         <label>Phone<input type="text" name="data[phone]" value="{{ old('data.phone', data_get($data, 'phone')) }}"></label>
         <label>Professional summary<textarea name="data[summary]" rows="5">{{ old('data.summary', data_get($data, 'summary')) }}</textarea></label>
-        <label>Skills <small class="field-help">Separate skills with commas</small><input type="text" name="data[skills]" value="{{ old('data.skills', implode(', ', data_get($data, 'skills', []))) }}"></label>
+        <label>Skills <small class="field-help">Separate skills with commas</small><input type="text" name="data[skills]" value="{{ old('data.skills', is_array(data_get($data, 'skills')) ? implode(', ', data_get($data, 'skills')) : (data_get($data, 'skills') ?? '')) }}"></label>
         <label>Template<select name="template_id" required>@foreach($templates as $template)<option value="{{ $template->id }}" @selected($cv->template_id === $template->id)>{{ $template->name }}</option>@endforeach</select></label>
 
         <hr>
