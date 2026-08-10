@@ -12,10 +12,7 @@
         <label>Email<input type="email" name="data[email]" value="<?php echo e(old('data.email', data_get($data, 'email'))); ?>"></label>
         <label>Phone<input type="text" name="data[phone]" value="<?php echo e(old('data.phone', data_get($data, 'phone'))); ?>"></label>
         <label>Professional summary<textarea name="data[summary]" rows="5"><?php echo e(old('data.summary', data_get($data, 'summary'))); ?></textarea></label>
-        <label>Skills <small class="field-help">Separate skills with commas</small>
-            <input type="text" name="data[skills]" 
-                value="<?php echo e(old('data.skills', is_array(data_get($data, 'skills')) ? implode(', ', data_get($data, 'skills')) : data_get($data, 'skills', ''))); ?>">
-        </label>
+        <label>Skills <small class="field-help">Separate skills with commas</small><input type="text" name="data[skills]" value="<?php echo e(old('data.skills', implode(', ', data_get($data, 'skills', [])))); ?>"></label>
         <label>Template<select name="template_id" required><?php $__currentLoopData = $templates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $template): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($template->id); ?>" <?php if($cv->template_id === $template->id): echo 'selected'; endif; ?>><?php echo e($template->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></label>
 
         <hr>
@@ -31,4 +28,5 @@
     </form>
 </div>
 <?php $__env->stopSection(); ?>
+
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\ai-cv-builder\resources\views/cvs/edit.blade.php ENDPATH**/ ?>

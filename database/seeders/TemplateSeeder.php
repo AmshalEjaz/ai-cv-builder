@@ -11,44 +11,51 @@ class TemplateSeeder extends Seeder
     {
         $templates = [
             [
+                'name' => 'Modern Teal',
+                'slug' => 'modern-teal',
+                'description' => 'Teal banner header with a clean two-column body.',
+                'thumbnail' => 'images/templates/modern-teal.png',
+                'settings' => ['accent' => '#167a74', 'layout' => 'modern-teal'],
+                'is_active' => true,
+            ],
+            [
                 'name' => 'Executive Slate',
                 'slug' => 'executive-slate',
-                'description' => 'Modern and clean design for executives',
+                'description' => 'Light header bar with a dark professional sidebar.',
                 'thumbnail' => 'images/templates/executive-slate.png',
-                'settings' => json_encode(['accent' => '#1a365d', 'font' => 'Inter']),
+                'settings' => ['accent' => '#2c2c2c', 'layout' => 'executive-slate'],
                 'is_active' => true,
             ],
             [
-                'name' => 'Minimalist Pro',
-                'slug' => 'minimalist-pro',
-                'description' => 'Simple and elegant minimalist design',
-                'thumbnail' => 'images/templates/minimalist-pro.png',
-                'settings' => json_encode(['accent' => '#2563eb', 'font' => 'Inter']),
+                'name' => 'Gray & Golden',
+                'slug' => 'gray-and-golden-resume-cv',
+                'description' => 'Dark sidebar with an initials avatar and a timeline of experience.',
+                'thumbnail' => 'images/templates/gray_and_golden_resume_cv.png',
+                'settings' => ['accent' => '#cda45e', 'layout' => 'gray-golden'],
                 'is_active' => true,
             ],
             [
-                'name' => 'Creative Bold',
-                'slug' => 'creative-bold',
-                'description' => 'Bold design for creative professionals',
-                'thumbnail' => 'images/templates/creative-bold.png',
-                'settings' => json_encode(['accent' => '#7c3aed', 'font' => 'Poppins']),
+                'name' => 'Black & White Simple',
+                'slug' => 'black-and-white-simple-cv-resume',
+                'description' => 'Bordered centered name with a clean split-column body.',
+                'thumbnail' => 'images/templates/Black_and_White_Simple_CV_Resume.png',
+                'settings' => ['accent' => '#f0ad4e', 'layout' => 'centered-classic'],
                 'is_active' => true,
             ],
             [
-                'name' => 'Classic Elegant',
-                'slug' => 'classic-elegant',
-                'description' => 'Traditional elegant design',
-                'thumbnail' => 'images/templates/classic-elegant.png',
-                'settings' => json_encode(['accent' => '#0f172a', 'font' => 'Georgia']),
+                'name' => 'Art Director',
+                'slug' => 'modern',
+                'description' => 'Bold dark banner with a two-tone name and timeline body.',
+                'thumbnail' => 'images/templates/modern.png',
+                'settings' => ['accent' => '#e0b23c', 'layout' => 'art-director'],
                 'is_active' => true,
             ],
         ];
 
         foreach ($templates as $template) {
-            // Update or Create - prevents duplicates
             Template::updateOrCreate(
-                ['slug' => $template['slug']], // Find by slug
-                $template // Update with these values
+                ['slug' => $template['slug']],
+                $template
             );
         }
 

@@ -18,6 +18,12 @@ class AIService
 
     public function parseAndEnhanceCV(string $text, ?string $template = null): array
     {
+        // Override PHP's max_execution_time for this call specifically, so a
+        // slow local Ollama response can't be killed early by php.ini limits
+        // (which default to 30-60s on many setups) before our own 300s HTTP
+        // timeout below even gets a chance to finish.
+        @set_time_limit(310);
+
         if (! config('services.ollama.enabled', false)) {
             return $this->parseLocally($text);
         }
@@ -35,7 +41,8 @@ class AIService
                 'format' => 'json', // force Ollama to return strict, valid JSON only (no chatty plain text)
                 'options' => [
                     'temperature' => 0,
-                    'num_ctx' => 8192,
+                    'num_ctx' => 8192,    // enough for a full CV without overloading slower machines
+                    'num_predict' => 2048, // enough output budget without making generation too slow
                 ],
             ];
 
@@ -49,7 +56,7 @@ class AIService
                 ];
             }
 
-            $response = Http::timeout(120)->post($this->apiUrl, $payload);
+            $response = Http::timeout(300)->post($this->apiUrl, $payload);
 
             if ($response->successful()) {
                 $body = $response->json();
@@ -179,8 +186,17 @@ Desired JSON schema:
       "degree": "Degree or program",
       "year": "Year completed or range"
     }
+  ],
+  "languages": [
+    {
+      "language": "Language name",
+      "proficiency": "Fluent / Intermediate / Basic / Native (if stated, otherwise omit or leave blank)"
+    }
   ]
 }
+
+Additional rule:
+- Only include a "languages" entry if the language is actually mentioned in the CV text. Never invent languages that are not present in the source.
 
 Now parse and enhance this CV text and return ONLY the JSON object.
 
@@ -199,7 +215,8 @@ EOT;
             'summary' => '',
             'skills' => [],
             'experience' => [],
-            'education' => []
+            'education' => [],
+            'languages' => []
         ];
 
         $result = array_merge($default, $data);
@@ -217,7 +234,29 @@ EOT;
         $result['education'] = array_values(array_filter(array_map([$this, 'normalizeEducationEntry'], $result['education'])));
         $result['education'] = $this->deduplicateEntries($result['education'], ['institution', 'degree', 'year']);
 
+        $result['languages'] = array_values(array_filter(array_map([$this, 'normalizeLanguageEntry'], is_array($result['languages']) ? $result['languages'] : [])));
+        $result['languages'] = $this->deduplicateEntries($result['languages'], ['language']);
+
         return $result;
+    }
+
+    private function normalizeLanguageEntry($entry): array
+    {
+        if (is_string($entry)) {
+            $entry = ['language' => $entry, 'proficiency' => ''];
+        }
+        if (! is_array($entry)) {
+            return [];
+        }
+
+        $language = trim((string) ($entry['language'] ?? ''));
+        $proficiency = trim((string) ($entry['proficiency'] ?? ''));
+
+        if ($language === '') {
+            return [];
+        }
+
+        return ['language' => $language, 'proficiency' => $proficiency];
     }
 
     private function deduplicateEntries(array $entries, array $keys): array
@@ -465,6 +504,7 @@ EOT;
             'skills' => $skills,
             'experience' => [],
             'education' => $education,
+            'languages' => [],
         ];
     }
 

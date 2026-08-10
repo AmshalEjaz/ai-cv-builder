@@ -75,13 +75,13 @@ class FileParserService
         $prefix = $workingDirectory . DIRECTORY_SEPARATOR . 'page';
 
         try {
-            // Render PDF pages to PNG using pdftoppm
+          
             $renderCmd = sprintf('%s -png -r 300 %s %s', escapeshellarg($pdftoppm), escapeshellarg($path), escapeshellarg($prefix));
             $render = Process::run($renderCmd);
-            Log::info('FileParserService: pdftoppm command', ['cmd' => $renderCmd, 'stdout' => $render->output(), 'stderr' => $render->error(), 'exitCode' => $render->exitCode()]);
+            Log::info('FileParserService: pdftoppm command', ['cmd' => $renderCmd, 'stdout' => $render->output(), 'stderr' => $render->errorOutput(), 'exitCode' => $render->exitCode()]);
             if ($render->failed()) {
-                // include stdout/stderr in exception to help debugging
-                throw new \RuntimeException('Failed to run pdftoppm. Output: ' . $render->output() . ' ' . $render->error());
+                
+                throw new \RuntimeException('Failed to run pdftoppm. Output: ' . $render->output() . ' ' . $render->errorOutput());
             }
 
             $pages = File::glob($prefix . '-*.png');
@@ -94,9 +94,9 @@ class FileParserService
             foreach ($pages as $page) {
                 $ocrCmd = sprintf('%s %s stdout -l eng', escapeshellarg($tesseract), escapeshellarg($page));
                 $output = Process::run($ocrCmd);
-                Log::info('FileParserService: tesseract command', ['cmd' => $ocrCmd, 'stdout_len' => strlen($output->output()), 'stderr' => $output->error(), 'exitCode' => $output->exitCode(), 'page' => $page]);
+                Log::info('FileParserService: tesseract command', ['cmd' => $ocrCmd, 'stdout_len' => strlen($output->output()), 'stderr' => $output->errorOutput(), 'exitCode' => $output->exitCode(), 'page' => $page]);
                 if ($output->failed()) {
-                    throw new \RuntimeException('Failed to run tesseract. Output: ' . $output->output() . ' ' . $output->error());
+                    throw new \RuntimeException('Failed to run tesseract. Output: ' . $output->output() . ' ' . $output->errorOutput());
                 }
                 $pageText = trim($output->output());
                 if ($pageText !== '') {
@@ -112,7 +112,6 @@ class FileParserService
 
             return $result;
         } finally {
-            // clean up temporary files
             try {
                 File::deleteDirectory($workingDirectory);
             } catch (\Throwable $e) {
@@ -127,7 +126,6 @@ class FileParserService
      */
     private function resolveBinary(string $name, string $defaultCommand = null): ?string
     {
-        // 1) .env override (PDFTOPPM_BINARY or TESSERACT_BINARY)
         $envKey = strtoupper($name) . '_BINARY';
         $envVal = env($envKey) ?: env('SERVICES_OCR_' . strtoupper($name) . '_BINARY');
         if ($envVal && File::exists($envVal)) {
@@ -135,7 +133,6 @@ class FileParserService
             return $envVal;
         }
 
-        // 2) Common install paths to try (Windows and Unix)
         $common = [];
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             if ($name === 'pdftoppm') {
@@ -152,7 +149,7 @@ class FileParserService
                 ];
             }
         } else {
-            // Unix-like defaults
+          
             $common = [
                 "/usr/bin/{$name}",
                 "/usr/local/bin/{$name}",
@@ -166,7 +163,6 @@ class FileParserService
             }
         }
 
-        // 3) Try using where (Windows) or which (Unix) if available
         try {
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                 $where = Process::run(['where.exe', $name]);
@@ -177,7 +173,7 @@ class FileParserService
                         return $line;
                     }
                 } else {
-                    Log::info('FileParserService: where.exe did not find the binary', ['name' => $name, 'output' => $where->output(), 'error' => $where->error()]);
+                    Log::info('FileParserService: where.exe did not find the binary', ['name' => $name, 'output' => $where->output(), 'error' => $where->errorOutput()]);
                 }
             } else {
                 $which = Process::run(['which', $name]);
@@ -188,14 +184,13 @@ class FileParserService
                         return $line;
                     }
                 } else {
-                    Log::info('FileParserService: which did not find the binary', ['name' => $name, 'output' => $which->output(), 'error' => $which->error()]);
+                    Log::info('FileParserService: which did not find the binary', ['name' => $name, 'output' => $which->output(), 'error' => $which->errorOutput()]);
                 }
             }
         } catch (\Throwable $e) {
             Log::warning('FileParserService: error while trying where/which', ['name' => $name, 'error' => $e->getMessage()]);
         }
 
-        // 4) As a last attempt, see if running the default command works by checking its version
         if ($defaultCommand) {
             try {
                 $test = Process::run([$defaultCommand, '--version']);

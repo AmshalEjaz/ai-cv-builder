@@ -50,40 +50,18 @@ class CV extends Model
         $raw = isset($parsed['raw_text']) ? $parsed['raw_text'] : '';
 
         $result = [
-            'name' => $this->resolveFieldValue($ai, 'name', $this->extractName($raw) ?? ''),
-            'title' => $this->resolveFieldValue($ai, 'title', $this->extractJobTitle($raw) ?? ''),
-            'email' => $this->resolveFieldValue($ai, 'email', $this->extractEmail($raw) ?? ''),
-            'phone' => $this->resolveFieldValue($ai, 'phone', $this->extractPhone($raw) ?? ''),
-            'address' => $this->resolveFieldValue($ai, 'address', ''),
-            'summary' => $this->resolveFieldValue($ai, 'summary', $this->extractSummary($raw) ?? ''),
-            'skills' => $this->resolveFieldValue($ai, 'skills', []),
-            'experience' => $this->resolveFieldValue($ai, 'experience', []),
-            'education' => $this->resolveFieldValue($ai, 'education', []),
-            'languages' => $this->resolveFieldValue($ai, 'languages', []),
-            'certifications' => $this->resolveFieldValue($ai, 'certifications', []),
-            'projects' => $this->resolveFieldValue($ai, 'projects', []),
-            'awards' => $this->resolveFieldValue($ai, 'awards', []),
-            'interests' => $this->resolveFieldValue($ai, 'interests', []),
-            'references' => $this->resolveFieldValue($ai, 'references', []),
+            'name' => $ai['name'] ?? $this->extractName($raw) ?? $this->title,
+            'title' => $ai['title'] ?? $this->extractJobTitle($raw) ?? ($ai['title'] ?? ''),
+            'email' => $ai['email'] ?? $this->extractEmail($raw),
+            'phone' => $ai['phone'] ?? $this->extractPhone($raw),
+            'summary' => $ai['summary'] ?? $this->extractSummary($raw),
+            'skills' => $ai['skills'] ?? [],
+            'experience' => $ai['experience'] ?? [],
+            'education' => $ai['education'] ?? [],
+            'languages' => $ai['languages'] ?? [],
         ];
 
         return $result;
-    }
-
-    private function resolveFieldValue(array $data, string $key, $fallback)
-    {
-        $value = $data[$key] ?? null;
-
-        if (is_string($value)) {
-            $value = trim($value);
-            return $value !== '' ? $value : $fallback;
-        }
-
-        if (is_array($value)) {
-            return ! empty($value) ? $value : $fallback;
-        }
-
-        return $fallback;
     }
 
     private function extractEmail(string $text): ?string
